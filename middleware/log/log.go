@@ -1,8 +1,8 @@
 package log
 
 import (
+	"github.com/severgroup-tt/gopkg-app/statistics"
 	"github.com/severgroup-tt/gopkg-logger"
-	"github.com/severgroup-tt/slack-poll/internal/pkg/statistics"
 	"net/http"
 	"time"
 )
