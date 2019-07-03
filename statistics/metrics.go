@@ -29,18 +29,25 @@ var (
 )
 
 var (
-	reg = prometheus.NewPedanticRegistry()
+	reg           = prometheus.NewPedanticRegistry()
+	collectorList = []prometheus.Collector{}
 )
+
+func AddCollector(collector ...prometheus.Collector) {
+	collectorList = append(collectorList, collector...)
+}
 
 // Metrics prometheus metrics
 func Metrics() http.Handler {
-	reg.MustRegister(
+	list := collectorList
+	list = append(list,
 		prometheus.NewGoCollector(),
 		LastReq,
 		CountError,
 		CountRequest,
 		ResponseTime,
 	)
+	reg.MustRegister(list...)
 
 	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 }
