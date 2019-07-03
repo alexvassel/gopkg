@@ -7,9 +7,7 @@ import (
 	"net/http"
 )
 
-type uuidKey_t string
-
-var uuidKey uuidKey_t = uuidKey_t("request-id")
+const ContextName = "request-id"
 
 func SetUuid(ctx context.Context) context.Context {
 	b := make([]byte, 16)
@@ -17,11 +15,11 @@ func SetUuid(ctx context.Context) context.Context {
 
 	uuid := fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 
-	return context.WithValue(ctx, uuidKey, uuid)
+	return context.WithValue(ctx, ContextName, uuid)
 }
 
 func GetId(ctx context.Context) string {
-	uuid, _ := ctx.Value(uuidKey).(string)
+	uuid, _ := ctx.Value(ContextName).(string)
 	return uuid
 }
 
