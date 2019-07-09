@@ -11,7 +11,8 @@ func AddAccept(offer string, excludePaths []string) func(next http.Handler) http
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			for _, path := range excludePaths {
-				if (path[len(path)-1:] == "*" && strings.Contains(r.URL.Path, path)) ||
+				lastPos := len(path) - 1
+				if (path[lastPos:] == "*" && strings.Contains(r.URL.Path, path[:lastPos])) ||
 					path == r.URL.Path {
 					next.ServeHTTP(w, r)
 					return
