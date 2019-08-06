@@ -10,10 +10,10 @@ var (
 	reg           = prometheus.NewPedanticRegistry()
 	collectorList = []prometheus.Collector{}
 
-	LastReq      prometheus.Collector
-	CountError   prometheus.Collector
-	CountRequest prometheus.Collector
-	ResponseTime prometheus.Collector
+	LastReq      prometheus.Gauge
+	CountError   prometheus.Counter
+	CountRequest prometheus.Counter
+	ResponseTime prometheus.Gauge
 )
 
 func AddBasicCollector(prefix string) {
