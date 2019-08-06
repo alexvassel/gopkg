@@ -7,31 +7,44 @@ import (
 )
 
 var (
+	reg           = prometheus.NewPedanticRegistry()
+	collectorList = []prometheus.Collector{}
+
+	LastReq      prometheus.Collector
+	CountError   prometheus.Collector
+	CountRequest prometheus.Collector
+	ResponseTime prometheus.Collector
+)
+
+func AddBasicCollector(prefix string) {
 	LastReq = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "main_last_request",
+		Name: prefix + "_last_request",
 		Help: "The time of last income request",
 	})
 
 	CountError = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "main_error_count",
+		Name: prefix + "_error_count",
 		Help: "The total number of request errors",
 	})
 
 	CountRequest = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "main_request_count",
+		Name: prefix + "_request_count",
 		Help: "The total request count",
 	})
 
 	ResponseTime = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "main_response_time",
+		Name: prefix + "_response_time",
 		Help: "Response time",
 	})
-)
 
-var (
-	reg           = prometheus.NewPedanticRegistry()
-	collectorList = []prometheus.Collector{}
-)
+	collectorList = append(collectorList,
+		prometheus.NewGoCollector(),
+		LastReq,
+		CountError,
+		CountRequest,
+		ResponseTime,
+	)
+}
 
 func AddCollector(collector ...prometheus.Collector) {
 	collectorList = append(collectorList, collector...)
@@ -39,15 +52,6 @@ func AddCollector(collector ...prometheus.Collector) {
 
 // Metrics prometheus metrics
 func Metrics() http.Handler {
-	list := collectorList
-	list = append(list,
-		prometheus.NewGoCollector(),
-		LastReq,
-		CountError,
-		CountRequest,
-		ResponseTime,
-	)
-	reg.MustRegister(list...)
-
+	reg.MustRegister(collectorList...)
 	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 }
