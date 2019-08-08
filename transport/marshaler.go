@@ -11,7 +11,10 @@ import (
 const contentType = "application/json"
 
 // NewMarshaller ...
-func NewMarshaller(options MarshallerOptions) httpruntime.Marshaler {
+func NewMarshaller(options *Options) httpruntime.Marshaler {
+	if options == nil {
+		options = NewOptions()
+	}
 	return marshaller{
 		base: httpruntime.MarshalerPbJSON{
 			Marshaler:       &runtime.JSONPb{OrigName: true, EmitDefaults: options.emitDefaults, EnumsAsInts: false},
@@ -20,20 +23,6 @@ func NewMarshaller(options MarshallerOptions) httpruntime.Marshaler {
 			GogoUnmarshaler: &gogojsonpb.Unmarshaler{AllowUnknownFields: true},
 		},
 	}
-}
-
-func NewMarshallerOptions() MarshallerOptions {
-	return MarshallerOptions{
-		emitDefaults: true,
-	}
-}
-
-func (m MarshallerOptions) WithEmitDefaults(val bool) {
-	m.emitDefaults = val
-}
-
-type MarshallerOptions struct {
-	emitDefaults bool
 }
 
 type marshaller struct {

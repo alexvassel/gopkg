@@ -7,14 +7,14 @@ import (
 )
 
 // Override
-func Override() {
-	OverrideMarshaler()
+func Override(options *Options) {
+	OverrideMarshaller(options)
 	OverrideErrorRenderer()
 }
 
-// OverrideMarshaler
-func OverrideMarshaler() {
-	jsonMarshaller := NewMarshaller()
+// OverrideMarshaller
+func OverrideMarshaller(options *Options) {
+	jsonMarshaller := NewMarshaller(options)
 	httpruntime.OverrideMarshaler(jsonMarshaller.ContentType(), jsonMarshaller)
 }
 
@@ -22,4 +22,18 @@ func OverrideMarshaler() {
 func OverrideErrorRenderer() {
 	httpruntime.SetError = transport.ErrorRenderer
 	httpruntime.TransformUnmarshalerError = TransformUnmarshalerError
+}
+
+func NewOptions() *Options {
+	return &Options{
+		emitDefaults: true,
+	}
+}
+
+func (m Options) WithMarshallerEmitDefaults(val bool) {
+	m.emitDefaults = val
+}
+
+type Options struct {
+	emitDefaults bool
 }
