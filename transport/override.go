@@ -30,8 +30,9 @@ func NewOptions() *Options {
 	}
 }
 
-func (m Options) WithMarshallerEmitDefaults(val bool) {
+func (m *Options) WithMarshallerEmitDefaults(val bool) *Options {
 	m.emitDefaults = val
+	return m
 }
 
 type Options struct {
