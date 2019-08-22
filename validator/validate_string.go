@@ -8,12 +8,12 @@ import (
 
 // ValidateMinLetter ...
 func ValidateMinLetter(fl validator.FieldLevel) bool {
-	val := fl.Field().String()
+	val := strings.TrimSpace(fl.Field().String())
 
 	min, err := strconv.Atoi(fl.Param())
 	if err != nil {
 		return false
 	}
 
-	return len(strings.TrimSpace(val)) >= min
+	return len(val) >= min
 }
