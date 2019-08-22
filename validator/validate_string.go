@@ -4,6 +4,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // ValidateMinLetter ...
@@ -15,5 +16,5 @@ func ValidateMinLetter(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	return len(val) >= min
+	return utf8.RuneCountInString(val) >= min
 }

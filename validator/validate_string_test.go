@@ -20,11 +20,14 @@ func Test_validateMinLetter(t *testing.T) {
 	cs := map[string]bool{
 		"":    false,
 		"1":   false,
-		"s":   false,
+		"я":   false,
+		"d":   false,
 		"12":  true,
-		"dc":  true,
+		"яв":  true,
+		"gh":  true,
 		"123": true,
-		"dfj": true,
+		"ява": true,
+		"jfg": true,
 	}
 
 	for value, ok := range cs {
