@@ -24,6 +24,7 @@ func New() *validator.Validate {
 			"field_required": ValidateFieldRequired,
 			"time_hhmm":      ValidateTimeHHMM,
 			"time_hhmmss":    ValidateTimeHHMMSS,
+			"min_letter":     ValidateMinLetter,
 		}
 		for tag, fn := range customValidations {
 			_ = validate.RegisterValidation(tag, fn)
