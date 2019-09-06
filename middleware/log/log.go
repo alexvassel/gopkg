@@ -46,8 +46,8 @@ func NewLogInterceptor() grpc.UnaryServerInterceptor {
 
 		resp, err = handler(ctx, req)
 
-		str, _ = json.Marshal(resp)
-		logger.Log(ctx, "Response: %s", str)
+		//str, _ = json.Marshal(resp)
+		//logger.Log(ctx, "Response: %s", str)
 
 		return resp, err
 	}
