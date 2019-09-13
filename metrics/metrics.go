@@ -1,4 +1,4 @@
-package statistics
+package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -13,7 +13,7 @@ var (
 	LastReq      prometheus.Gauge
 	CountError   prometheus.Counter
 	CountRequest prometheus.Counter
-	ResponseTime prometheus.Gauge
+	ResponseTime prometheus.Histogram
 )
 
 func AddBasicCollector(prefix string) {
@@ -32,9 +32,10 @@ func AddBasicCollector(prefix string) {
 		Help: "The total request count",
 	})
 
-	ResponseTime = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: prefix + "_response_time",
-		Help: "Response time",
+	ResponseTime = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    prefix + "_response_time",
+		Help:    "Response time in ms",
+		Buckets: []float64{1, 10, 100, 1000, 10000},
 	})
 
 	collectorList = append(collectorList,
