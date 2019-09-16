@@ -41,7 +41,7 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 
 func NewLogInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		str, _ := json.Marshal(resp)
+		str, _ := json.Marshal(req)
 		logger.Log(ctx, "Request: %s", str)
 
 		resp, err = handler(ctx, req)
