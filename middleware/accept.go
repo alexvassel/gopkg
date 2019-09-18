@@ -9,6 +9,7 @@ import (
 
 func AddAccept(offer string, excludePaths []string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+		excludePaths = append(excludePaths, "/", "/favicon.ico", "/debug/*")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			for _, path := range excludePaths {
 				lastPos := len(path) - 1

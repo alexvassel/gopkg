@@ -1,6 +1,8 @@
 package app
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/severgroup-tt/gopkg-app/metrics"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 	"net/http"
@@ -48,5 +50,10 @@ func WithPprof(enabled bool) OptionFn {
 func WithSwaggerOption(o ...swagger.Option) OptionFn {
 	return func(a *App) {
 		a.customSwaggerOption = append(a.customSwaggerOption, o...)
+	}
+}
+func WithMetrics(metric ...prometheus.Collector) OptionFn {
+	return func(a *App) {
+		metrics.AddCollector(metric...)
 	}
 }
