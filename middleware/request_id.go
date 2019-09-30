@@ -3,35 +3,41 @@ package middleware
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
+	"github.com/go-chi/chi/middleware"
 	"net/http"
+	"os"
+	"strings"
 )
 
-const (
-	requestIDContextName = "request-id"
-	requestIdHeaderName  = "X-Request-Id"
-)
+var prefix string
 
-func SetRequestUuid(ctx context.Context) context.Context {
-	b := make([]byte, 16)
-	_, _ = rand.Read(b)
-
-	uuid := fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-
-	return context.WithValue(ctx, requestIDContextName, uuid)
+func SetRequestId(ctx context.Context) context.Context {
+	id := middleware.NextRequestID()
+	return context.WithValue(ctx, middleware.RequestIDKey, fmt.Sprintf("%s-%06d", prefix, id))
 }
 
 func GetRequestId(ctx context.Context) string {
-	uuid, _ := ctx.Value(requestIDContextName).(string)
-	return uuid
+	return middleware.GetReqID(ctx)
 }
 
 func NewRequestIdMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(SetRequestUuid(r.Context()))
-			w.Header().Add(requestIdHeaderName, GetRequestId(r.Context()))
-			next.ServeHTTP(w, r)
-		})
+	return middleware.RequestID
+}
+
+func init() {
+	hostname, err := os.Hostname()
+	if hostname == "" || err != nil {
+		hostname = "localhost"
 	}
+	var buf [12]byte
+	var b64 string
+	for len(b64) < 10 {
+		_, _ = rand.Read(buf[:])
+		b64 = base64.StdEncoding.EncodeToString(buf[:])
+		b64 = strings.NewReplacer("+", "", "/", "").Replace(b64)
+	}
+
+	prefix = fmt.Sprintf("%s/%s", hostname, b64[0:10])
 }

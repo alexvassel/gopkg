@@ -7,7 +7,6 @@ import (
 	"github.com/severgroup-tt/gopkg-app/middleware"
 	"net"
 	"net/http"
-	"net/http/pprof"
 	"syscall"
 	"time"
 
@@ -18,14 +17,15 @@ import (
 	pkgvalidator "github.com/severgroup-tt/gopkg-app/validator"
 	validatorerr "github.com/severgroup-tt/gopkg-app/validator/errors"
 	validatormw "github.com/severgroup-tt/gopkg-app/validator/middleware"
-
-	"github.com/go-chi/chi"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	errors "github.com/severgroup-tt/gopkg-errors"
 	errgrpc "github.com/severgroup-tt/gopkg-errors/grpc"
 	errhttp "github.com/severgroup-tt/gopkg-errors/http"
 	errmw "github.com/severgroup-tt/gopkg-errors/middleware"
 	logger "github.com/severgroup-tt/gopkg-logger"
+
+	"github.com/go-chi/chi"
+	chiwm "github.com/go-chi/chi/middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/utrack/clay/v2/transport"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
@@ -118,7 +118,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 		})
 		if a.customEnablePprof {
 			logger.Log(logger.App, "PPROF enabled")
-			a.addPprofHandler()
+			a.httpServer.Mount("/debug", chiwm.Profiler())
 		}
 		for _, h := range a.customPublicHandler {
 			a.httpServer.Method(h.Method, h.Pattern, h.HandlerFunc)
@@ -156,20 +156,13 @@ func getDefaultUnaryInterceptor(appName string) []grpc.UnaryServerInterceptor {
 
 func getDefaultPublicMiddleware(appVersion string) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
+		middleware.NewHeartbeatMiddleware(),
 		middleware.NewCorsMiddleware(),
 		middleware.NewRequestIdMiddleware(),
 		middleware.NewLogMiddleware(),
 		middleware.NewNoCacheMiddleware(),
 		middleware.NewVersionMiddleware(appVersion),
 	}
-}
-
-func (a *App) addPprofHandler() {
-	a.httpServer.HandleFunc("/debug/pprof/", pprof.Index)
-	a.httpServer.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	a.httpServer.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	a.httpServer.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	a.httpServer.HandleFunc("/debug/pprof/trace", pprof.Trace)
 }
 
 func (a *App) initServers(ctx context.Context) error {

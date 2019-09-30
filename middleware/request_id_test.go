@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/go-chi/chi/middleware"
 	"net/http"
 	"testing"
 )
@@ -8,9 +9,9 @@ import (
 func TestSetId(t *testing.T) {
 	t.Run("SetUuid", func(t *testing.T) {
 		var r = &http.Request{}
-		var x = r.WithContext(SetRequestUuid(r.Context()))
+		var x = r.WithContext(SetRequestId(r.Context()))
 		y := GetRequestId(x.Context())
-		if x.Context().Value(requestIDContextName) != y {
+		if x.Context().Value(middleware.RequestIDKey) != y {
 			t.Error("uuid Keys do not match")
 		}
 	})
