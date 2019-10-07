@@ -7,6 +7,7 @@ import (
 	"github.com/severgroup-tt/gopkg-app/middleware"
 	"net"
 	"net/http"
+	"regexp"
 	"syscall"
 	"time"
 
@@ -84,9 +85,7 @@ func (a *App) Run(impl ...transport.Service) {
 		descs = append(descs, i.GetDescription())
 	}
 	implDesc := transport.NewCompoundServiceDesc(descs...)
-	implDesc.Apply(transport.WithUnaryInterceptor(grpc_middleware.ChainUnaryServer(
-		append(a.unaryInterceptor)...,
-	)))
+	implDesc.Apply(transport.WithUnaryInterceptor(grpc_middleware.ChainUnaryServer(a.unaryInterceptor...)))
 	a.runServers(implDesc)
 }
 
@@ -216,10 +215,12 @@ func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
 	a.httpAdminServer.Get("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/swagger.json", 301)
 	})
+	removeSchemeRE := regexp.MustCompile("^https?://")
+	hostWithoutScheme := removeSchemeRE.ReplaceAllString(a.config.Host, "")
 	a.httpAdminServer.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-MimeType", "application/json")
 		o := []swagger.Option{
-			swagger.WithHost(a.config.HostAdmin),
+			swagger.WithHost(hostWithoutScheme),
 			swagger.WithTitle(a.config.Name),
 			swagger.WithVersion(a.config.Version),
 			pkgtransport.SetIntegerTypeForInt64(),
