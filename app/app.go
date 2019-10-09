@@ -96,13 +96,13 @@ func GracefulDelay(serviceName string) {
 }
 
 func (a *App) runServers(impl *transport.CompoundServiceDesc) {
-	if a.grpcServer != nil {
+	if a.grpcListener != nil {
 		a.grpcServer = grpc.NewServer(grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(a.unaryInterceptor...)))
 		impl.RegisterGRPC(a.grpcServer)
 		a.runGRPC()
 	}
 
-	if a.httpServer != nil {
+	if a.httpListener != nil {
 		a.httpServer.Use(a.publicMiddleware...)
 		impl.RegisterHTTP(a.httpServer)
 		a.httpServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +125,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 		a.runPublicHTTP()
 	}
 
-	if a.httpAdminServer != nil {
+	if a.httpAdminListener != nil {
 		a.initAdminHandlers(impl)
 		a.runAdminHTTP()
 	}
