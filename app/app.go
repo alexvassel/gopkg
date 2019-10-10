@@ -71,7 +71,7 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 		unaryInterceptor: getDefaultUnaryInterceptor(config.Name),
 		publicMiddleware: getDefaultPublicMiddleware(config.Version),
 		publicCloser:     closer.New(syscall.SIGTERM, syscall.SIGINT),
-		background:       background.NewManager(ctx),
+		background:       background.NewManager(ctx, config.Background...),
 	}
 	if err := a.initServers(ctx); err != nil {
 		return nil, err

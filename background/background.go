@@ -23,6 +23,16 @@ type job struct {
 	options   []OptionFn
 }
 
+func NewJob(name string, tickRate, timeout time.Duration, processor Processor, opts ...OptionFn) IService {
+	return &job{
+		Name:      name,
+		processor: processor,
+		TickRate:  tickRate,
+		Timeout:   timeout,
+		options:   opts,
+	}
+}
+
 func (j *job) Run(ctx context.Context) error {
 	defer close(j.stopChan)
 	for _, o := range j.options {

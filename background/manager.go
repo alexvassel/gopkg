@@ -13,21 +13,15 @@ type Manager struct {
 	services     []IService
 }
 
-func NewManager(ctx context.Context) *Manager {
+func NewManager(ctx context.Context, job ...IService) *Manager {
 	return &Manager{
 		ctx:      ctx,
-		services: make([]IService, 0),
+		services: job,
 	}
 }
 
 func (m *Manager) AddJob(name string, tickRate, timeout time.Duration, processor Processor, opts ...OptionFn) {
-	m.services = append(m.services, &job{
-		Name:      name,
-		processor: processor,
-		TickRate:  tickRate,
-		Timeout:   timeout,
-		options:   opts,
-	})
+	m.services = append(m.services, NewJob(name, tickRate, timeout, processor, opts...))
 }
 
 func (m *Manager) HasJobs() bool {
