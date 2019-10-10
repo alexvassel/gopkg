@@ -7,7 +7,6 @@ import (
 )
 
 func NewClient(opt Option, extra ...grpc.DialOption) (*grpc.ClientConn, error) {
-	extra = append(extra, grpc.WithInsecure())
 	return grpc.Dial(
 		opt.Addr,
 		append([]grpc.DialOption{
