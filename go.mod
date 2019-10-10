@@ -15,8 +15,11 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.3
 	github.com/leodido/go-urn v1.1.0 // indirect
+	github.com/oklog/oklog v0.3.2
+	github.com/oklog/run v1.0.0 // indirect
 	github.com/prometheus/client_golang v0.9.2
 	github.com/robfig/cron v1.2.0 // indirect
+	github.com/severgroup-tt/gopkg-database v0.2.1
 	github.com/severgroup-tt/gopkg-errors v0.0.3
 	github.com/severgroup-tt/gopkg-logger v0.0.3
 	github.com/stretchr/testify v1.3.0

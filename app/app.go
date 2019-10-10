@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/severgroup-tt/gopkg-app/background"
 	"github.com/severgroup-tt/gopkg-app/middleware"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
 	"regexp"
@@ -50,6 +52,8 @@ type App struct {
 	unaryInterceptor []grpc.UnaryServerInterceptor
 	publicMiddleware []func(http.Handler) http.Handler
 
+	background *background.Manager
+
 	publicCloser *closer.Closer
 
 	customPublicHandler []PublicHandler
@@ -67,6 +71,7 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 		unaryInterceptor: getDefaultUnaryInterceptor(config.Name),
 		publicMiddleware: getDefaultPublicMiddleware(config.Version),
 		publicCloser:     closer.New(syscall.SIGTERM, syscall.SIGINT),
+		background:       background.NewManager(ctx),
 	}
 	if err := a.initServers(ctx); err != nil {
 		return nil, err
@@ -80,6 +85,8 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 }
 
 func (a *App) Run(impl ...transport.Service) {
+	a.runBackground()
+
 	var descs []transport.ServiceDesc
 	for _, i := range impl {
 		descs = append(descs, i.GetDescription())
@@ -87,6 +94,26 @@ func (a *App) Run(impl ...transport.Service) {
 	implDesc := transport.NewCompoundServiceDesc(descs...)
 	implDesc.Apply(transport.WithUnaryInterceptor(grpc_middleware.ChainUnaryServer(a.unaryInterceptor...)))
 	a.runServers(implDesc)
+}
+
+func (a *App) runBackground() {
+	if !a.background.HasJobs() {
+		return
+	}
+	go func() {
+		if err := a.background.Run(); err != nil {
+			logger.Error(logger.App, "Can't start background processes: %v", err)
+		} else {
+			a.publicCloser.Add(func() error {
+				a.background.Stop()
+				return nil
+			})
+		}
+	}()
+}
+
+func (a *App) AddBackground(name string, tickRate, timeout time.Duration, processor background.Processor, opts ...background.OptionFn) {
+	a.background.AddJob(name, tickRate, timeout, processor, opts...)
 }
 
 func GracefulDelay(serviceName string) {
@@ -99,6 +126,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 	if a.grpcListener != nil {
 		a.grpcServer = grpc.NewServer(grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(a.unaryInterceptor...)))
 		impl.RegisterGRPC(a.grpcServer)
+		reflection.Register(a.grpcServer)
 		a.runGRPC()
 	}
 
