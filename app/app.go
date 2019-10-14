@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"syscall"
 	"time"
@@ -232,15 +233,51 @@ func (a *App) initServers(ctx context.Context) error {
 }
 
 func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
+	// table of contents
+	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`<h1>Table of contents</h1><ul>
+			<li><a href="/docs/rest/">REST documentation</a></li>
+			<li><a href="/docs/grpc/">GRPC documentation</a></li>
+			<li><a href="/metrics">Metrics</a></li>
+		</ul>`))
+	})
+	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", 301)
+	})
+	a.httpAdminServer.Get("/docs/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", 301)
+	})
+
 	// metrics
 	a.httpAdminServer.Mount("/metrics", metrics.Metrics())
 
-	// swagger
-	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/docs/", 301)
+	// grpc documentation
+	a.httpAdminServer.Get("/docs/grpc", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/docs/grpc/", 301)
 	})
-	a.httpAdminServer.Mount("/docs/", http.StripPrefix("/docs", swaggerui.NewHTTPHandler()))
-	a.httpAdminServer.Get("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+	a.httpAdminServer.HandleFunc("/docs/grpc/", func(w http.ResponseWriter, r *http.Request) {
+		filePath := "docs/grpc/index.html"
+		_, err := os.Stat(filePath)
+		if os.IsNotExist(err) {
+			_, _ = w.Write([]byte(`<div>Insert into Makefile and execute:</div>
+<pre>.PHONY: doc-grpc
+doc-grpc: bin-deps ; $(info $(M) generate grpc docs…) @ ## Generate GRPC documentation
+	protoc \
+		--plugin=protoc-gen-doc=$(LOCAL_BIN)/protoc-gen-doc \
+		-I./api/:./vendor.pb \
+		--doc_out=./docs/grpc \
+		--doc_opt=html,index.html ./api/*.proto</pre>`))
+			return
+		}
+		http.ServeFile(w, r, filePath)
+	})
+
+	// swagger
+	a.httpAdminServer.Get("/docs/rest", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/docs/rest/", 301)
+	})
+	a.httpAdminServer.Mount("/docs/rest/", http.StripPrefix("/docs/rest", swaggerui.NewHTTPHandler()))
+	a.httpAdminServer.Get("/docs/rest/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/swagger.json", 301)
 	})
 	removeSchemeRE := regexp.MustCompile("^https?://")
