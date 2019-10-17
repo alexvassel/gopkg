@@ -52,18 +52,18 @@ func NewLogUnaryInterceptor(service string) grpc.UnaryClientInterceptor {
 			logLevel = ERROR
 		}
 
-		message := "Service: %s, Host: %s, Method: %s, Url: %d, Request: %s, Response: %s, ResponseError: %s, TimeElapsed: %s"
+		message := "GRPC service: %v, Host: %v, Url: %v, Request: %v, Response: %v, ResponseError: %v, TimeElapsed: %v"
 		values := make([]interface{}, 0)
-		values = append(values, service, cc.Target(), "GRPC", method, req, reply, status.Code(err).String(), err, time.Since(startedAt))
+		values = append(values, service, cc.Target(), method, req, reply, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {
 		case INFO:
-			logger.Log(ctx, message, values)
+			logger.Log(ctx, message, values...)
 		case ERROR:
-			logger.Error(ctx, message, values)
+			logger.Error(ctx, message, values...)
 		case DEBUG:
-			logger.Debug(ctx, message, values)
+			logger.Debug(ctx, message, values...)
 		default:
-			logger.Log(ctx, message, values)
+			logger.Log(ctx, message, values...)
 		}
 
 		return err
@@ -81,18 +81,18 @@ func NewLogStreamInterceptor(service string) grpc.StreamClientInterceptor {
 			logLevel = ERROR
 		}
 
-		message := "Service: %s, Host: %s, Method: %s, Url: %d, ResponseStatus: %s, ResponseError: %s, TimeElapsed: %s"
+		message := "GRPC_STREAM service: %v, Host: %v, Url: %v, ResponseStatus: %v, ResponseError: %v, TimeElapsed: %v"
 		values := make([]interface{}, 0)
-		values = append(values, service, cc.Target(), "GRPC_STREAM", method, status.Code(err).String(), err, time.Since(startedAt))
+		values = append(values, service, cc.Target(), method, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {
 		case INFO:
-			logger.Log(ctx, message, values)
+			logger.Log(ctx, message, values...)
 		case ERROR:
-			logger.Error(ctx, message, values)
+			logger.Error(ctx, message, values...)
 		case DEBUG:
-			logger.Debug(ctx, message, values)
+			logger.Debug(ctx, message, values...)
 		default:
-			logger.Log(ctx, message, values)
+			logger.Log(ctx, message, values...)
 		}
 
 		return clientStream, err

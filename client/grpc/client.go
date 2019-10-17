@@ -11,7 +11,7 @@ import (
 func NewClient(opt Option, extra ...grpc.DialOption) (*grpc.ClientConn, error) {
 	return grpc.Dial(
 		opt.Addr,
-		append([]grpc.DialOption{
+		append(extra,
 			grpc.WithInsecure(),
 			grpc.WithUserAgent(opt.AppName),
 			grpc.WithUnaryInterceptor(grpcmw.ChainUnaryClient(defaultUnaryInterceptors(opt)...)),
@@ -19,7 +19,7 @@ func NewClient(opt Option, extra ...grpc.DialOption) (*grpc.ClientConn, error) {
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
 				PermitWithoutStream: true, // most likely it does not work without proper setup on server side
 			}),
-		}, extra...)...)
+		)...)
 }
 
 // DefaultUnaryInterceptors ...
