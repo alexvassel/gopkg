@@ -52,7 +52,7 @@ func NewLogUnaryInterceptor(service string) grpc.UnaryClientInterceptor {
 			logLevel = ERROR
 		}
 
-		message := "GRPC service: %v, Host: %v, Url: %v, Request: %v, Response: %v, ResponseError: %v, TimeElapsed: %v"
+		message := "GRPC service: %v, Host: %v, Url: %v, Request: %v, Response: %+v, ResponseError: %v, Error: %v, TimeElapsed: %v"
 		values := make([]interface{}, 0)
 		values = append(values, service, cc.Target(), method, req, reply, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {
@@ -81,7 +81,7 @@ func NewLogStreamInterceptor(service string) grpc.StreamClientInterceptor {
 			logLevel = ERROR
 		}
 
-		message := "GRPC_STREAM service: %v, Host: %v, Url: %v, ResponseStatus: %v, ResponseError: %v, TimeElapsed: %v"
+		message := "GRPC_STREAM service: %v, Host: %v, Url: %v, ResponseStatus: %v, ResponseError: %v, Err: %v, TimeElapsed: %v"
 		values := make([]interface{}, 0)
 		values = append(values, service, cc.Target(), method, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {

@@ -8,14 +8,22 @@ import (
 )
 
 // NewClient ...
-func NewClient(opt Option, extra ...grpc.DialOption) (*grpc.ClientConn, error) {
+func NewClient(opt Option, optFn ...OptionFn) (*grpc.ClientConn, error) {
+	opt.dialOption = make([]grpc.DialOption, 0)
+	opt.unaryInterceptor = make([]grpc.UnaryClientInterceptor, 0)
+	opt.streamInterceptor = make([]grpc.StreamClientInterceptor, 0)
+	for _, o := range optFn {
+		o(&opt)
+	}
 	return grpc.Dial(
 		opt.Addr,
-		append(extra,
+		append(opt.dialOption,
 			grpc.WithInsecure(),
 			grpc.WithUserAgent(opt.AppName),
-			grpc.WithUnaryInterceptor(grpcmw.ChainUnaryClient(defaultUnaryInterceptors(opt)...)),
-			grpc.WithStreamInterceptor(grpcmw.ChainStreamClient(defaultStreamInterceptors(opt)...)),
+			grpc.WithUnaryInterceptor(grpcmw.ChainUnaryClient(
+				append(opt.unaryInterceptor, defaultUnaryInterceptors(opt)...)...)),
+			grpc.WithStreamInterceptor(grpcmw.ChainStreamClient(
+				append(opt.streamInterceptor, defaultStreamInterceptors(opt)...)...)),
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
 				PermitWithoutStream: true, // most likely it does not work without proper setup on server side
 			}),
