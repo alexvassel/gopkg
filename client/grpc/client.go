@@ -2,6 +2,8 @@ package grpc
 
 import (
 	grpcmw "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	mw "github.com/severgroup-tt/gopkg-app/client/grpc/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -34,6 +36,8 @@ func NewClient(opt Option, optFn ...OptionFn) (*grpc.ClientConn, error) {
 func defaultUnaryInterceptors(opts Option) []grpc.UnaryClientInterceptor {
 	return []grpc.UnaryClientInterceptor{
 		mw.NewAppInfoUnaryInterceptor(opts.AppName, opts.AppVersion),
+		grpc_opentracing.UnaryClientInterceptor(),
+		grpc_prometheus.UnaryClientInterceptor,
 		mw.NewLogUnaryInterceptor(opts.Service),
 		mw.NewRetryUnaryInterceptor(opts.Service, opts.MaxRetry, opts.RetryDelay),
 	}
@@ -42,6 +46,8 @@ func defaultUnaryInterceptors(opts Option) []grpc.UnaryClientInterceptor {
 // DefaultStreamInterceptors ...
 func defaultStreamInterceptors(opts Option) []grpc.StreamClientInterceptor {
 	return []grpc.StreamClientInterceptor{
+		grpc_opentracing.StreamClientInterceptor(),
+		grpc_prometheus.StreamClientInterceptor,
 		mw.NewAppInfoStreamInterceptor(opts.AppName, opts.AppVersion),
 		mw.NewLogStreamInterceptor(opts.Service),
 	}

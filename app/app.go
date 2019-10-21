@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/opentracing/opentracing-go"
 	"github.com/severgroup-tt/gopkg-app/background"
 	"github.com/severgroup-tt/gopkg-app/middleware"
 	"google.golang.org/grpc/reflection"
@@ -14,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/severgroup-tt/gopkg-app/closer"
 	"github.com/severgroup-tt/gopkg-app/metrics"
 	swaggerui "github.com/severgroup-tt/gopkg-app/swagger"
@@ -54,6 +58,7 @@ type App struct {
 	publicMiddleware []func(http.Handler) http.Handler
 
 	background *background.Manager
+	tracer     *opentracing.Tracer
 
 	publicCloser *closer.Closer
 
@@ -74,7 +79,8 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 		publicCloser:     closer.New(syscall.SIGTERM, syscall.SIGINT),
 		background:       background.NewManager(ctx, config.Background...),
 	}
-	if err := a.initServers(ctx); err != nil {
+
+	if err := a.initServers(); err != nil {
 		return nil, err
 	}
 
@@ -163,7 +169,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 		a.publicCloser.Add(fn)
 	}
 
-	// Wait signal and close all Scratch resources
+	// Wait signal and close all resources
 	a.publicCloser.Wait()
 	// Close all other resources from globalCloser
 	closer.CloseAll()
@@ -176,9 +182,12 @@ func getDefaultUnaryInterceptor(appName string) []grpc.UnaryServerInterceptor {
 		errgrpc.Converter(appName),
 	}
 	return []grpc.UnaryServerInterceptor{
+		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_prometheus.UnaryServerInterceptor,
 		errmw.NewConvertErrorsServerInterceptor(errConverters, &metrics.CountError),
 		validatormw.NewValidateServerInterceptor(pkgvalidator.New()),
 		middleware.NewLogInterceptor(),
+		grpc_recovery.UnaryServerInterceptor(),
 	}
 }
 
@@ -193,7 +202,7 @@ func getDefaultPublicMiddleware(appVersion string) []func(http.Handler) http.Han
 	}
 }
 
-func (a *App) initServers(ctx context.Context) error {
+func (a *App) initServers() error {
 	logger.Log(logger.App, "App '%s' version '%s' in %s started",
 		a.config.Name,
 		a.config.Version,

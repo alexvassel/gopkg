@@ -4,6 +4,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 )
 
 func AddBasicCollector(prefix string) {
+	prefix = strings.ReplaceAll(prefix, "-", "_")
 	LastReq = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: prefix + "_last_request",
 		Help: "The time of last income request",

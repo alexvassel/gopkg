@@ -3,13 +3,15 @@ package app
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/severgroup-tt/gopkg-app/metrics"
+	"github.com/severgroup-tt/gopkg-app/middleware"
+	"github.com/severgroup-tt/gopkg-app/tracing"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 	"net/http"
 )
 
 type PublicCloserFn func() error
-type OptionFn func(a *App)
+type OptionFn func(a *App) error
 
 type PublicHandler struct {
 	Method      string
@@ -18,42 +20,66 @@ type PublicHandler struct {
 }
 
 func WithPublicHandler(method, pattern string, handlerFunc http.HandlerFunc) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.customPublicHandler = append(a.customPublicHandler, PublicHandler{Method: method, Pattern: pattern, HandlerFunc: handlerFunc})
+		return nil
 	}
 }
 
 func WithPublicCloser(fn ...PublicCloserFn) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.customPublicCloser = append(a.customPublicCloser, fn...)
+		return nil
 	}
 }
 
 func WithUnaryInterceptor(interceptor ...grpc.UnaryServerInterceptor) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.unaryInterceptor = append(a.unaryInterceptor, interceptor...)
+		return nil
 	}
 }
 
 func WithPublicMiddleware(middleware ...func(http.Handler) http.Handler) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.publicMiddleware = append(a.publicMiddleware, middleware...)
+		return nil
 	}
 }
 
 func WithPprof(enabled bool) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.customEnablePprof = enabled
+		return nil
 	}
 }
 
 func WithSwaggerOption(o ...swagger.Option) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		a.customSwaggerOption = append(a.customSwaggerOption, o...)
+		return nil
 	}
 }
+
 func WithMetrics(metric ...prometheus.Collector) OptionFn {
-	return func(a *App) {
+	return func(a *App) error {
 		metrics.AddCollector(metric...)
+		return nil
+	}
+}
+
+func WithTracer(addr string) OptionFn {
+	return func(a *App) error {
+		tracerCloser, err := tracing.InitTracer(a.config.Name, addr)
+		if err != nil {
+			return err
+		}
+		a.publicCloser.Add(func() error {
+			return tracerCloser.Close()
+		})
+		a.unaryInterceptor = append(a.unaryInterceptor,
+			middleware.NewUnaryTracingInterceptor(tracing.GetTracer()),
+		)
+		return nil
 	}
 }
