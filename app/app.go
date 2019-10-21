@@ -85,7 +85,9 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 	}
 
 	for _, optFn := range option {
-		optFn(a)
+		if err := optFn(a); err != nil {
+			return nil, err
+		}
 	}
 
 	return a, nil
