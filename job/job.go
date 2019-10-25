@@ -73,7 +73,7 @@ func buildArgs(ctx context.Context, job interface{}) (map[string]interface{}, er
 	return ret, nil
 }
 
-func fillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
+func FillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
 	st := reflect.ValueOf(job)
 	if st.Kind() != reflect.Ptr {
 		return errors.Internal.Err(ctx, "Job should be pointer")
@@ -92,29 +92,9 @@ func fillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
 		var castOk bool
 		kind := st.Type().Field(i).Type.Kind()
 		switch kind {
-		case reflect.Int:
-			if v, ok := value.(int); ok {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if v, ok := value.(float64); ok {
 				st.Field(i).SetInt(int64(v))
-				castOk = true
-			}
-		case reflect.Int8:
-			if v, ok := value.(int8); ok {
-				st.Field(i).SetInt(int64(v))
-				castOk = true
-			}
-		case reflect.Int16:
-			if v, ok := value.(int16); ok {
-				st.Field(i).SetInt(int64(v))
-				castOk = true
-			}
-		case reflect.Int32:
-			if v, ok := value.(int32); ok {
-				st.Field(i).SetInt(int64(v))
-				castOk = true
-			}
-		case reflect.Int64:
-			if v, ok := value.(int64); ok {
-				st.Field(i).SetInt(v)
 				castOk = true
 			}
 		case reflect.String:

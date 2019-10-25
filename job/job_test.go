@@ -48,7 +48,7 @@ func TestJob(t *testing.T) {
 
 	t.Run("Fill args", func(t *testing.T) {
 		gotJob := testJob{}
-		err := fillArgs(context.Background(), &gotJob, &work.Job{Args: args})
+		err := FillArgs(context.Background(), &gotJob, &work.Job{Args: args})
 		assert.Nil(t, err)
 		assert.Equal(t, job, gotJob)
 	})
