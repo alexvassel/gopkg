@@ -62,6 +62,7 @@ type App struct {
 
 	publicCloser *closer.Closer
 
+	favicon             []byte
 	customPublicHandler []PublicHandler
 	customPublicCloser  []PublicCloserFn
 	customSwaggerOption []swagger.Option
@@ -72,8 +73,10 @@ func NewApp(ctx context.Context, config Config, option ...OptionFn) (*App, error
 	pkgtransport.Override(nil)
 	metrics.AddBasicCollector(config.Name)
 
+	favicon, _ := base64.StdEncoding.DecodeString("AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//////////////////////////////////7+//3+/v/9/v7//v79//7++v/+/v3//f7+//3+/v8AAAAA//////////////////////////////////////7+/v/8/v3/+vfu//PPlv/vumz/8cF4//bmxv/9/v3//f79///////////////////////////////////////+/v7//P77//TGg//2s1X/+rRS//q0Uv/ws1v/+OvR//7+/f///////////////////////////////////////v7+//n05P/0slj/+rNT//mzU//6s1L/+rNT//PPmP/+/v7///////////////////////////////////////7+/v/48+P/87NX//i0Uv/5tFP/+LRS//mzVP/zz5X//v79///////////////////////////////////////+/v7/+/37//LDgf/4s1P/+LRT//m0Uv/3s1n/9erQ//3+/v///////////////////////////////////////P7+//3+/f/59+r/8syS//S4Z//zv3P/9ePF//z+/P/+/v3///////////////////////////////////////7+/v/+/v7//f79//z+/P/+/fn//f75//3+/f/+/v3//v7+//3+/v/8/f3/9vv7/7zq9/+d4Pf/uen3//T7/P/7/f3//f7+//v8/f/wz9j/6Ka0/+q0wP/68PP/+/7+//7+/v/7/v7/+f38/4rX9P9VyPX/Usj3/1HJ9f+F1fX/9fz9//3+/v/or7r/42B3/+dfdv/oX3f/3nSH//ns8P/9/v7//f3+/8zv+f9UyPX/Tsn3/1HI9/9QyPj/Usj1/8ft+P/58PP/32V6/+lfd//nX3f/5193/+dfd//nqrb//v7+//v9/f+66vj/Usj3/1HI9/9RyPf/Ucj3/1LI9/+x5vn/8uLm/+Bgd//nX3f/5193/+dfd//oX3f/5Zem//7+/v/9/v7/3vT6/1jK8/9Ryff/Ucn3/1LI9/9TyvT/2PL7//z4+v/gb4T/5l92/+dfd//nX3f/4193/+66xf/+/v7//v7+//z9/v+z5vj/XMvz/1XI9v9Zy/L/quL3//r9/v/9/v7/79LY/+Btgf/lX3b/4mF3/+OWpP/7+fv//v7+///////+/v7//P7+/+b4+//N8Pn/5fb7//v9/P/9/v7/+v7+//z8/f/68/b/79Xb//Ti5//8/f3//f7+//3+/v8AAAAA//////7+/v/7/v7//P7+//3+/v/9/v7/+v7+//z+/v/7/v7//P7+//3+///9/v7//P7+//z+/v8AAAAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAEAAA==")
 	a := &App{
 		config:           config,
+		favicon:          favicon,
 		unaryInterceptor: getDefaultUnaryInterceptor(config.Name),
 		publicMiddleware: getDefaultPublicMiddleware(config.Version),
 		publicCloser:     closer.New(syscall.SIGTERM, syscall.SIGINT),
@@ -149,8 +152,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 		})
 		a.httpServer.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "image/x-icon")
-			data, _ := base64.StdEncoding.DecodeString("AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//////////////////////////////////7+//3+/v/9/v7//v79//7++v/+/v3//f7+//3+/v8AAAAA//////////////////////////////////////7+/v/8/v3/+vfu//PPlv/vumz/8cF4//bmxv/9/v3//f79///////////////////////////////////////+/v7//P77//TGg//2s1X/+rRS//q0Uv/ws1v/+OvR//7+/f///////////////////////////////////////v7+//n05P/0slj/+rNT//mzU//6s1L/+rNT//PPmP/+/v7///////////////////////////////////////7+/v/48+P/87NX//i0Uv/5tFP/+LRS//mzVP/zz5X//v79///////////////////////////////////////+/v7/+/37//LDgf/4s1P/+LRT//m0Uv/3s1n/9erQ//3+/v///////////////////////////////////////P7+//3+/f/59+r/8syS//S4Z//zv3P/9ePF//z+/P/+/v3///////////////////////////////////////7+/v/+/v7//f79//z+/P/+/fn//f75//3+/f/+/v3//v7+//3+/v/8/f3/9vv7/7zq9/+d4Pf/uen3//T7/P/7/f3//f7+//v8/f/wz9j/6Ka0/+q0wP/68PP/+/7+//7+/v/7/v7/+f38/4rX9P9VyPX/Usj3/1HJ9f+F1fX/9fz9//3+/v/or7r/42B3/+dfdv/oX3f/3nSH//ns8P/9/v7//f3+/8zv+f9UyPX/Tsn3/1HI9/9QyPj/Usj1/8ft+P/58PP/32V6/+lfd//nX3f/5193/+dfd//nqrb//v7+//v9/f+66vj/Usj3/1HI9/9RyPf/Ucj3/1LI9/+x5vn/8uLm/+Bgd//nX3f/5193/+dfd//oX3f/5Zem//7+/v/9/v7/3vT6/1jK8/9Ryff/Ucn3/1LI9/9TyvT/2PL7//z4+v/gb4T/5l92/+dfd//nX3f/4193/+66xf/+/v7//v7+//z9/v+z5vj/XMvz/1XI9v9Zy/L/quL3//r9/v/9/v7/79LY/+Btgf/lX3b/4mF3/+OWpP/7+fv//v7+///////+/v7//P7+/+b4+//N8Pn/5fb7//v9/P/9/v7/+v7+//z8/f/68/b/79Xb//Ti5//8/f3//f7+//3+/v8AAAAA//////7+/v/7/v7//P7+//3+/v/9/v7/+v7+//z+/v/7/v7//P7+//3+///9/v7//P7+//z+/v8AAAAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAEAAA==")
-			_, _ = w.Write(data)
+			_, _ = w.Write(a.favicon)
 		})
 		if a.customEnablePprof {
 			logger.Log(logger.App, "PPROF enabled")

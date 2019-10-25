@@ -83,3 +83,10 @@ func WithTracer(addr string) OptionFn {
 		return nil
 	}
 }
+
+func WithFavicon(favicon []byte) OptionFn {
+	return func(a *App) error {
+		a.favicon = favicon
+		return nil
+	}
+}
