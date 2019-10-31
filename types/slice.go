@@ -35,6 +35,15 @@ func SliceIntContains(s []int, e int) bool {
 	return false
 }
 
+func SliceInt64Contains(s []int64, e int64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func IsIntersect(a interface{}, b interface{}) bool {
 	hash := make(map[interface{}]bool)
 	av := reflect.ValueOf(a)
