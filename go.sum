@@ -158,6 +158,7 @@ github.com/severgroup-tt/gopkg-database v0.2.1 h1:mMXV4qRz1pR0j7Po/AoB7cCw6Xyh/g
 github.com/severgroup-tt/gopkg-database v0.2.1/go.mod h1:gyYtThts6ZX5sataJb6XU6uxlZIEL0krtf4Uvxq8FZA=
 github.com/severgroup-tt/gopkg-errors v0.0.3 h1:C2vbLiMs0nPKwgo3aaGAayIQyzOxmQkZQ+g90g4kV70=
 github.com/severgroup-tt/gopkg-errors v0.0.3/go.mod h1:MG1V9ph4F6chQR1Lb7virlflznoMGNKgSS8YhXDqO6Y=
+github.com/severgroup-tt/gopkg-errors v0.0.4/go.mod h1:MG1V9ph4F6chQR1Lb7virlflznoMGNKgSS8YhXDqO6Y=
 github.com/severgroup-tt/gopkg-logger v0.0.3 h1:0BEUapxZ6g4z7z1fm7lIdKXtbitmBVIIH409hEGQMiY=
 github.com/severgroup-tt/gopkg-logger v0.0.3/go.mod h1:LdGxYPluum9dp7KIuSq4c2A+QfrNGDuCakw1R1MCqHI=
 github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=

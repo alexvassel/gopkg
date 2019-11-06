@@ -23,7 +23,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/severgroup-tt/gopkg-database v0.2.1
-	github.com/severgroup-tt/gopkg-errors v0.0.3
+	github.com/severgroup-tt/gopkg-errors v0.0.4
 	github.com/severgroup-tt/gopkg-logger v0.0.3
 	github.com/stretchr/testify v1.3.0
 	github.com/uber-go/atomic v1.4.0 // indirect
