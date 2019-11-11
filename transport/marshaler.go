@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"encoding/json"
 	"io"
 
 	gogojsonpb "github.com/gogo/protobuf/jsonpb"
@@ -36,7 +37,7 @@ func (m marshaller) ContentType() string {
 
 // Marshal ...
 func (m marshaller) Marshal(w io.Writer, response interface{}) error {
-	return m.base.Marshal(w, response)
+	return json.NewEncoder(w).Encode(response)
 }
 
 // Unmarshal ...
