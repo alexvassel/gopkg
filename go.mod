@@ -14,7 +14,7 @@ require (
 	github.com/gogo/protobuf v1.2.1
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.3
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/oklog/oklog v0.3.2
@@ -26,13 +26,11 @@ require (
 	github.com/severgroup-tt/gopkg-errors v0.0.4
 	github.com/severgroup-tt/gopkg-logger v0.0.3
 	github.com/stretchr/testify v1.3.0
-	github.com/uber-go/atomic v1.4.0 // indirect
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/utrack/clay/v2 v2.3.9
-	go.uber.org/atomic v1.4.0 // indirect
 	google.golang.org/grpc v1.22.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v9 v9.29.0
+	gopkg.in/go-playground/validator.v10 v10.0.0-20190523145740-884d31b8cad6
 	gopkg.in/satori/go.uuid.v1 v1.2.0
 )

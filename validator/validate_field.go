@@ -3,7 +3,7 @@ package validator
 import (
 	"reflect"
 
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 )
 
 // ValidateFieldRequired ...

@@ -2,7 +2,7 @@ package validator
 
 import (
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 	"testing"
 )
 

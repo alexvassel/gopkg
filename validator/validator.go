@@ -3,7 +3,7 @@ package validator
 import (
 	"sync"
 
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 )
 
 var (

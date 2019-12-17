@@ -3,7 +3,7 @@ package validator
 import (
 	"time"
 
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 )
 
 const rfcDateFormat = "2006-01-02"

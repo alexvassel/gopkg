@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 )
 
 // NewValidateServerInterceptor wrap endpoint with validation middleware

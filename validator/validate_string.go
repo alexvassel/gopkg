@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 	"strconv"
 	"strings"
 	"unicode/utf8"

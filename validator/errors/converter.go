@@ -4,23 +4,29 @@ import (
 	"context"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/severgroup-tt/gopkg-errors"
 
-	"gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v10"
 )
 
 const ValidationMsg = "Invalid request payload"
 
+type Code string
+
 // Global validation codes
 const (
-	CommonTagCode    = "INVALID"
-	RequiredTagCode  = "EMPTY"
-	LenTagCode       = "INVALID_LENGTH"
-	SizeTagCode      = "OUT_OF_RANGE"
-	TooFewItemsCode  = "TOO_FEW_ELEMENTS"
-	TooManyItemsCode = "TOO_MANY_ELEMENTS"
+	CommonCode       Code = "INVALID"
+	RequiredCode     Code = "REQUIRED"
+	EqLenCode        Code = "LEN"
+	MinLenCode       Code = "MIN_LEN"
+	MaxLenCode       Code = "MAX_LEN"
+	MinCode          Code = "MIN"
+	MaxCode          Code = "MAX"
+	TooFewItemsCode  Code = "TOO_FEW_ELEM"
+	TooManyItemsCode Code = "TOO_MANY_ELEM"
 )
 
 // Converter converts error from validation errors
@@ -39,31 +45,51 @@ func Converter() errors.ErrorConverter {
 	}
 }
 
+func BuildCode(code Code, param interface{}) string {
+	ret := string(code)
+	strParam := ""
+	switch v := param.(type) {
+	case string:
+		strParam = v
+	case int:
+		strParam = strconv.Itoa(v)
+	case int8:
+		strParam = strconv.FormatInt(int64(v), 10)
+	case int32:
+		strParam = strconv.FormatInt(int64(v), 10)
+	case int64:
+		strParam = strconv.FormatInt(v, 10)
+	}
+	if param != "" {
+		ret += ":" + strParam
+	}
+	return ret
+}
+
 func convertValidationError(ctx context.Context, err validator.ValidationErrors) *errors.Error {
 	result := errors.BadRequest.ErrWrap(ctx, ValidationMsg, err)
+	// https://godoc.org/gopkg.in/go-playground/validator.v10
 	for _, fieldErr := range err {
-		status := CommonTagCode
+		value := Code(strings.ToUpper(fieldErr.Tag()))
 		switch fieldErr.Tag() {
-		case "required":
-			status = RequiredTagCode
-		case "len":
-			status = LenTagCode
 		case "min":
-			status = SizeTagCode
 			if fieldErr.Kind() == reflect.Slice {
-				status = TooFewItemsCode
+				value = TooFewItemsCode
+			}
+			if fieldErr.Kind() == reflect.String {
+				value = MinLenCode
 			}
 		case "max":
-			status = SizeTagCode
 			if fieldErr.Kind() == reflect.Slice {
-				status = TooManyItemsCode
+				value = TooManyItemsCode
 			}
-		case "eq", "ne", "lt", "lte", "gt", "gte":
-			status = SizeTagCode
+			if fieldErr.Kind() == reflect.String {
+				value = MinLenCode
+			}
 		}
 
 		field := toSnakeCase(fieldErr.Field())
-		result = result.WithPayloadKV(field, status)
+		result = result.WithPayloadKV(field, BuildCode(value, fieldErr.Param()))
 	}
 
 	return result

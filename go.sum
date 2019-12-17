@@ -156,8 +156,8 @@ github.com/robfig/cron v1.2.0/go.mod h1:JGuDeoQd7Z6yL4zQhZ3OPEVHB7fL6Ka6skscFHfm
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/severgroup-tt/gopkg-database v0.2.1 h1:mMXV4qRz1pR0j7Po/AoB7cCw6Xyh/gg+ps93L8Pffow=
 github.com/severgroup-tt/gopkg-database v0.2.1/go.mod h1:gyYtThts6ZX5sataJb6XU6uxlZIEL0krtf4Uvxq8FZA=
-github.com/severgroup-tt/gopkg-errors v0.0.3 h1:C2vbLiMs0nPKwgo3aaGAayIQyzOxmQkZQ+g90g4kV70=
 github.com/severgroup-tt/gopkg-errors v0.0.3/go.mod h1:MG1V9ph4F6chQR1Lb7virlflznoMGNKgSS8YhXDqO6Y=
+github.com/severgroup-tt/gopkg-errors v0.0.4 h1:o8qPfkvjvwwePZJx600xRzmKaIQ6ojWJpjOsCPvnm98=
 github.com/severgroup-tt/gopkg-errors v0.0.4/go.mod h1:MG1V9ph4F6chQR1Lb7virlflznoMGNKgSS8YhXDqO6Y=
 github.com/severgroup-tt/gopkg-logger v0.0.3 h1:0BEUapxZ6g4z7z1fm7lIdKXtbitmBVIIH409hEGQMiY=
 github.com/severgroup-tt/gopkg-logger v0.0.3/go.mod h1:LdGxYPluum9dp7KIuSq4c2A+QfrNGDuCakw1R1MCqHI=
@@ -169,16 +169,12 @@ github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoH
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-github.com/uber-go/atomic v1.4.0 h1:yOuPqEq4ovnhEjpHmfFwsqBXDYbQeT6Nb0bwD6XnD5o=
-github.com/uber-go/atomic v1.4.0/go.mod h1:/Ct5t2lcmbJ4OSe/waGBoaVvVqtO0bmtfVNex1PFV8g=
 github.com/uber/jaeger-client-go v2.19.0+incompatible h1:pbwbYfHUoaase0oPQOdZ1GcaUjImYGimUXSQ/+8+Z8Q=
 github.com/uber/jaeger-client-go v2.19.0+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible h1:MxZXOiR2JuoANZ3J6DE/U0kSFv/eJ/GfSYVCjK7dyaw=
 github.com/uber/jaeger-lib v2.2.0+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6+uUTzImX/AauajbLI56U=
 github.com/utrack/clay/v2 v2.3.9 h1:D0Oqo3WtQzveEE8Ze4WUuuxXUvKa+0BEmxc4JHXsDNY=
 github.com/utrack/clay/v2 v2.3.9/go.mod h1:DzkvY/s+bPRnr1wAnmOP+T2Kvz6uMTLY4gQAC7dElKQ=
-go.uber.org/atomic v1.4.0 h1:cxzIVoETapQEqDhQu3QfnvXAV4AlzcvUCxkVUFw3+EU=
-go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
@@ -246,6 +242,8 @@ gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMy
 gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2/go.mod h1:Xk6kEKp8OKb+X14hQBKWaSkCsqBpgog8nAV2xsGOxlo=
 gopkg.in/go-playground/assert.v1 v1.2.1 h1:xoYuJVE7KT85PYWrN730RguIQO0ePzVRfFMXadIrXTM=
 gopkg.in/go-playground/assert.v1 v1.2.1/go.mod h1:9RXL0bg/zibRAgZUYszZSwO/z8Y/a8bDuhia5mkpMnE=
+gopkg.in/go-playground/validator.v10 v10.0.0-20190523145740-884d31b8cad6 h1:wUAT1tsgtnslPfDvm6ArEisCRK9iKFa0lAF9f5ndHaY=
+gopkg.in/go-playground/validator.v10 v10.0.0-20190523145740-884d31b8cad6/go.mod h1:Ad/QVai46y7Qbbu2QZZMKaCE0VqrSCqPXX3ipLoVVjc=
 gopkg.in/go-playground/validator.v9 v9.29.0 h1:5ofssLNYgAA/inWn6rTZ4juWpRJUwEnXc1LG2IeXwgQ=
 gopkg.in/go-playground/validator.v9 v9.29.0/go.mod h1:+c9/zcJMFNgbLvly1L1V+PpxWdVbfP1avr/N00E2vyQ=
 gopkg.in/resty.v1 v1.12.0/go.mod h1:mDo4pnntr5jdWRML875a/NmxYqAlA73dVijT2AXvQQo=
