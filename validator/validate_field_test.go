@@ -3,8 +3,8 @@ package validator
 import (
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/go-playground/validator.v10"
 )
 
 func Test_validateFieldEmpty(t *testing.T) {

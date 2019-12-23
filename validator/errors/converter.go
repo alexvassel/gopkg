@@ -9,7 +9,7 @@ import (
 
 	"github.com/severgroup-tt/gopkg-errors"
 
-	"gopkg.in/go-playground/validator.v10"
+	"github.com/go-playground/validator/v10"
 )
 
 const ValidationMsg = "Invalid request payload"
@@ -68,7 +68,7 @@ func BuildCode(code Code, param interface{}) string {
 
 func convertValidationError(ctx context.Context, err validator.ValidationErrors) *errors.Error {
 	result := errors.BadRequest.ErrWrap(ctx, ValidationMsg, err)
-	// https://godoc.org/gopkg.in/go-playground/validator.v10
+	// https://godoc.org/github.com/go-playground/validator
 	for _, fieldErr := range err {
 		value := Code(strings.ToUpper(fieldErr.Tag()))
 		switch fieldErr.Tag() {

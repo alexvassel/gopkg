@@ -1,8 +1,8 @@
 package validator
 
 import (
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/go-playground/validator.v10"
 	"testing"
 )
 
