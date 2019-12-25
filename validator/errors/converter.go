@@ -84,7 +84,7 @@ func convertValidationError(ctx context.Context, err validator.ValidationErrors)
 				value = TooManyItemsCode
 			}
 			if fieldErr.Kind() == reflect.String {
-				value = MinLenCode
+				value = MaxLenCode
 			}
 		}
 
