@@ -3,6 +3,7 @@ package background
 import (
 	"context"
 	"fmt"
+	"github.com/severgroup-tt/gopkg-app/sentry"
 	"runtime"
 	"strings"
 	"time"
@@ -111,6 +112,8 @@ func tryProcess(ctx context.Context, processor Processor) (err error) {
 		default:
 			err = errors.Internal.Err(ctx, fmt.Sprint(panicErr)).WithLogKV("stack", stackStr)
 		}
+
+		sentry.Panic(err)
 	}()
 
 	err = processor(ctx)

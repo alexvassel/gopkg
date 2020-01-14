@@ -4,11 +4,12 @@ go 1.12
 
 require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
+	github.com/getsentry/sentry-go v0.4.0
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/go-chi/cors v1.0.0
 	github.com/go-openapi/runtime v0.19.2
 	github.com/go-openapi/spec v0.19.2
-	github.com/go-playground/validator/v10 v10.0.1 // indirect
+	github.com/go-playground/validator/v10 v10.0.1
 	github.com/gocraft/work v0.5.1
 	github.com/gogo/protobuf v1.2.1
 	github.com/gomodule/redigo v2.0.0+incompatible

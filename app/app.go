@@ -20,6 +20,7 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/severgroup-tt/gopkg-app/closer"
 	"github.com/severgroup-tt/gopkg-app/metrics"
+	"github.com/severgroup-tt/gopkg-app/sentry"
 	swaggerui "github.com/severgroup-tt/gopkg-app/swagger"
 	pkgtransport "github.com/severgroup-tt/gopkg-app/transport"
 	pkgvalidator "github.com/severgroup-tt/gopkg-app/validator"
@@ -191,7 +192,10 @@ func getDefaultUnaryInterceptor(appName string) []grpc.UnaryServerInterceptor {
 		errmw.NewConvertErrorsServerInterceptor(errConverters, &metrics.CountError),
 		validatormw.NewValidateServerInterceptor(pkgvalidator.New()),
 		middleware.NewLogInterceptor(),
-		grpc_recovery.UnaryServerInterceptor(),
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(data interface{}) (err error) {
+			sentry.Panic(data)
+			return nil
+		})),
 	}
 }
 

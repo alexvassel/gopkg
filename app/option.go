@@ -4,10 +4,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/severgroup-tt/gopkg-app/metrics"
 	"github.com/severgroup-tt/gopkg-app/middleware"
+	"github.com/severgroup-tt/gopkg-app/sentry"
 	"github.com/severgroup-tt/gopkg-app/tracing"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 	"net/http"
+	"time"
 )
 
 type PublicCloserFn func() error
@@ -80,6 +82,15 @@ func WithTracer(addr string) OptionFn {
 		a.unaryInterceptor = append(a.unaryInterceptor,
 			middleware.NewUnaryTracingInterceptor(tracing.GetTracer()),
 		)
+		return nil
+	}
+}
+
+func WithSentry(project, token string, timeout time.Duration) OptionFn {
+	return func(a *App) error {
+		if err := sentry.Init(project, token, timeout); err != nil {
+			return err
+		}
 		return nil
 	}
 }

@@ -3,7 +3,10 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/severgroup-tt/gopkg-app/metrics"
+	"github.com/severgroup-tt/gopkg-app/sentry"
+	errors "github.com/severgroup-tt/gopkg-errors"
 	"github.com/severgroup-tt/gopkg-logger"
 	"google.golang.org/grpc"
 	"net/http"
@@ -34,6 +37,13 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 			reqDurationMs := (time.Now().UnixNano() - start) / int64(time.Millisecond)
 			metrics.ResponseTime.Observe(float64(reqDurationMs))
 
+			if lr.status == 500 {
+				sentry.Error(errors.Internal.Err(
+					r.Context(),
+					fmt.Sprintf("%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs),
+				))
+			}
+
 			logger.Log(r.Context(), "%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs)
 		})
 	}
@@ -48,6 +58,8 @@ func NewLogInterceptor() grpc.UnaryServerInterceptor {
 
 		//str, _ = json.Marshal(resp)
 		//logger.Log(ctx, "Response: %s", str)
+
+		sentry.Error(err)
 
 		return resp, err
 	}
