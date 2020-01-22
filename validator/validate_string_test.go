@@ -39,3 +39,34 @@ func Test_validateMinLetter(t *testing.T) {
 		}
 	}
 }
+
+func Test_validateEmailList(t *testing.T) {
+	v := validator.New()
+	err := v.RegisterValidation("email_list", ValidateEmailList)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type field struct {
+		Val string `validate:"email_list"`
+	}
+
+	cs := map[string]bool{
+		"a@a.a":               true,
+		"a@a.a, b@b.b":        true,
+		"a@a.a,b@b.b , c@c.c": true,
+		"a.d.v.b@d.d.f.g":     true,
+		"notemail":            false,
+		"a@a.a b@b.b":         false,
+		"a@aa, b@b.b":         false,
+	}
+
+	for value, ok := range cs {
+		err := v.Struct(field{Val: value})
+		if ok {
+			assert.Nil(t, err)
+		} else {
+			assert.NotNil(t, err)
+		}
+	}
+}
