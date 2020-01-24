@@ -10,7 +10,7 @@ type EventProcessor func(ctx context.Context, msg interface{}) error
 
 // EventListener ...
 type EventListener interface {
-	EventProcessors() map[Event]EventProcessor
+	EventProcessors() map[Event][]EventProcessor
 }
 
 // EventDispatcher ...

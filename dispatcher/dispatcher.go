@@ -21,7 +21,7 @@ func (d *Dispatcher) AddListener(listener EventListener) {
 	d.rwMutex.Lock()
 	defer d.rwMutex.Unlock()
 	for name, processor := range listener.EventProcessors() {
-		d.processors[name] = append(d.processors[name], processor)
+		d.processors[name] = append(d.processors[name], processor...)
 	}
 }
 
@@ -49,7 +49,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, name Event, msg interface{}) 
 		go withRecover(ctx, func() {
 			defer w.Done()
 			if err := processor(ctx, msg); err != nil {
-				logger.Error(ctx, "dispatcher Dispatch error on event: %s, error: %v", name, err)
+				logger.Error(ctx, "dispatcher Dispatch error on event: %s, error: %#v", name, err)
 				sentry.Error(err)
 			}
 		})
