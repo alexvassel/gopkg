@@ -15,6 +15,20 @@ func (b ExtBool) IsNull() bool {
 	return false
 }
 
+func (b ExtBool) IsTrue() bool {
+	if b == ExtBoolTrue {
+		return true
+	}
+	return false
+}
+
+func (b ExtBool) IsFalse() bool {
+	if b == ExtBoolFalse {
+		return true
+	}
+	return false
+}
+
 func (b ExtBool) ToBool() bool {
 	if b == ExtBoolTrue {
 		return true
