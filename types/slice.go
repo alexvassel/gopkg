@@ -63,3 +63,15 @@ func IsIntersect(a interface{}, b interface{}) bool {
 
 	return false
 }
+
+func SliceUniqueInt(intSlice []int) []int {
+	keys := make(map[int]struct{}, len(intSlice))
+	ret := make([]int, 0, len(intSlice))
+	for _, item := range intSlice {
+		if _, ok := keys[item]; !ok {
+			keys[item] = struct{}{}
+			ret = append(ret, item)
+		}
+	}
+	return ret
+}
