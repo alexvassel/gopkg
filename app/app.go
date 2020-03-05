@@ -254,6 +254,12 @@ func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
 	urlPrefix := a.adminURLPrefix
 
 	// table of contents
+	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/", 301)
+	})
+	a.httpAdminServer.Get("/docs/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/", 301)
+	})
 	a.httpAdminServer.Get(urlPrefix+"/", func(w http.ResponseWriter, r *http.Request) {
 		body := "<h1>Table of contents</h1><ul>"
 		if a.config.Listener.HttpPort != 0 {
@@ -265,17 +271,6 @@ func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
 		body += `<li><a href="` + urlPrefix + `/metrics">Metrics</a></li>`
 		body += `</ul>`
 		_, _ = w.Write([]byte(body))
-	})
-	//if urlPrefix != "" {
-	//	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
-	//		http.Redirect(w, r, urlPrefix+"/", 301)
-	//	})
-	//}
-	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, urlPrefix+"/docs/", 301)
-	})
-	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, urlPrefix+"/docs/", 301)
 	})
 
 	// metrics
