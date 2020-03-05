@@ -101,3 +101,10 @@ func WithFavicon(favicon []byte) OptionFn {
 		return nil
 	}
 }
+
+func WithAdminURLPrefix(prefix string) OptionFn {
+	return func(a *App) error {
+		a.adminURLPrefix = prefix
+		return nil
+	}
+}

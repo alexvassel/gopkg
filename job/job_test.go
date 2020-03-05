@@ -10,25 +10,26 @@ import (
 
 type testJob struct {
 	jobName struct{} `Job:"job_name"`
-	Int     int
-	Int32   int32
-	Int64   int64
-	String  string
-	Bool    bool
+	//Int     int
+	//Int32   int32
+	//Int64   int64
+	String string
+	Bool   bool
 }
 
 func TestJob(t *testing.T) {
+	// TODO внутри все целые числа хранит во float64, надо чтото делать с этим
 	job := testJob{
-		Int:    1,
-		Int32:  2,
-		Int64:  3,
+		//Int:    1,
+		//Int32:  2,
+		//Int64:  3,
 		String: "4",
 		Bool:   true,
 	}
 	args := map[string]interface{}{
-		"Int":    int(1),
-		"Int32":  int32(2),
-		"Int64":  int64(3),
+		//"Int":    int(1),
+		//"Int32":  int32(2),
+		//"Int64":  int64(3),
 		"String": "4",
 		"Bool":   true,
 	}

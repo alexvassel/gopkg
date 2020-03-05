@@ -64,6 +64,7 @@ type App struct {
 	publicCloser *closer.Closer
 
 	favicon             []byte
+	adminURLPrefix      string
 	customPublicHandler []PublicHandler
 	customPublicCloser  []PublicCloserFn
 	customSwaggerOption []swagger.Option
@@ -250,35 +251,42 @@ func (a *App) initServers() error {
 }
 
 func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
+	urlPrefix := a.adminURLPrefix
+
 	// table of contents
-	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	a.httpAdminServer.Get(urlPrefix+"/", func(w http.ResponseWriter, r *http.Request) {
 		body := "<h1>Table of contents</h1><ul>"
 		if a.config.Listener.HttpPort != 0 {
-			body += `<li><a href="/docs/rest/">REST documentation</a></li>`
+			body += `<li><a href="` + urlPrefix + `/docs/rest/">REST documentation</a></li>`
 		}
 		if a.config.Listener.GrpcPort != 0 {
-			body += `<li><a href="/docs/grpc/">GRPC documentation</a></li>`
+			body += `<li><a href="` + urlPrefix + `/docs/grpc/">GRPC documentation</a></li>`
 		}
-		body += `<li><a href="/metrics">Metrics</a></li>`
+		body += `<li><a href="` + urlPrefix + `/metrics">Metrics</a></li>`
 		body += `</ul>`
 		_, _ = w.Write([]byte(body))
 	})
-	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/", 301)
+	if urlPrefix != "" {
+		a.httpAdminServer.Get(urlPrefix, func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, urlPrefix+"/", 301)
+		})
+	}
+	a.httpAdminServer.Get(urlPrefix+"/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/", 301)
 	})
-	a.httpAdminServer.Get("/docs/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/", 301)
+	a.httpAdminServer.Get(urlPrefix+"/docs/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/", 301)
 	})
 
 	// metrics
-	a.httpAdminServer.Mount("/metrics", metrics.Metrics())
+	a.httpAdminServer.Mount(urlPrefix+"/metrics", metrics.Metrics())
 
 	// grpc documentation
 	if a.config.Listener.GrpcPort != 0 {
-		a.httpAdminServer.Get("/docs/grpc", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "/docs/grpc/", 301)
+		a.httpAdminServer.Get(urlPrefix+"/docs/grpc", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, urlPrefix+"/docs/grpc/", 301)
 		})
-		a.httpAdminServer.HandleFunc("/docs/grpc/", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.HandleFunc(urlPrefix+"/docs/grpc/", func(w http.ResponseWriter, r *http.Request) {
 			filePath := "docs/grpc/index.html"
 			_, err := os.Stat(filePath)
 			if os.IsNotExist(err) {
@@ -303,16 +311,16 @@ doc-grpc: bin-deps ; $(info $(M) generate grpc docs…) @ ## Generate GRPC docum
 
 	// swagger
 	if a.config.Listener.HttpPort != 0 {
-		a.httpAdminServer.Get("/docs/rest", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "/docs/rest/", 301)
+		a.httpAdminServer.Get(urlPrefix+"/docs/rest", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, urlPrefix+"/docs/rest/", 301)
 		})
-		a.httpAdminServer.Mount("/docs/rest/", http.StripPrefix("/docs/rest", swaggerui.NewHTTPHandler()))
-		a.httpAdminServer.Get("/docs/rest/swagger.json", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "/swagger.json", 301)
+		a.httpAdminServer.Mount(urlPrefix+"/docs/rest/", http.StripPrefix(urlPrefix+"/docs/rest", swaggerui.NewHTTPHandler()))
+		a.httpAdminServer.Get(urlPrefix+"/docs/rest/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, urlPrefix+"/swagger.json", 301)
 		})
 		removeSchemeRE := regexp.MustCompile("^https?://")
 		hostWithoutScheme := removeSchemeRE.ReplaceAllString(a.config.Host, "")
-		a.httpAdminServer.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.HandleFunc(urlPrefix+"/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-MimeType", "application/json")
 			o := []swagger.Option{
 				swagger.WithHost(hostWithoutScheme),
