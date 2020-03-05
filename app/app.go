@@ -267,26 +267,26 @@ func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
 		_, _ = w.Write([]byte(body))
 	})
 	if urlPrefix != "" {
-		a.httpAdminServer.Get(urlPrefix, func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.Get("", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, urlPrefix+"/", 301)
 		})
 	}
-	a.httpAdminServer.Get(urlPrefix+"/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, urlPrefix+"/", 301)
+	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/docs/", 301)
 	})
-	a.httpAdminServer.Get(urlPrefix+"/docs/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, urlPrefix+"/", 301)
+	a.httpAdminServer.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, urlPrefix+"/docs/", 301)
 	})
 
 	// metrics
-	a.httpAdminServer.Mount(urlPrefix+"/metrics", metrics.Metrics())
+	a.httpAdminServer.Mount("/metrics", metrics.Metrics())
 
 	// grpc documentation
 	if a.config.Listener.GrpcPort != 0 {
-		a.httpAdminServer.Get(urlPrefix+"/docs/grpc", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.Get("/docs/grpc", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, urlPrefix+"/docs/grpc/", 301)
 		})
-		a.httpAdminServer.HandleFunc(urlPrefix+"/docs/grpc/", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.HandleFunc("/docs/grpc/", func(w http.ResponseWriter, r *http.Request) {
 			filePath := "docs/grpc/index.html"
 			_, err := os.Stat(filePath)
 			if os.IsNotExist(err) {
@@ -311,16 +311,16 @@ doc-grpc: bin-deps ; $(info $(M) generate grpc docs…) @ ## Generate GRPC docum
 
 	// swagger
 	if a.config.Listener.HttpPort != 0 {
-		a.httpAdminServer.Get(urlPrefix+"/docs/rest", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.Get("/docs/rest", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, urlPrefix+"/docs/rest/", 301)
 		})
-		a.httpAdminServer.Mount(urlPrefix+"/docs/rest/", http.StripPrefix(urlPrefix+"/docs/rest", swaggerui.NewHTTPHandler()))
-		a.httpAdminServer.Get(urlPrefix+"/docs/rest/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.Mount("/docs/rest/", http.StripPrefix("/docs/rest", swaggerui.NewHTTPHandler()))
+		a.httpAdminServer.Get("/docs/rest/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, urlPrefix+"/swagger.json", 301)
 		})
 		removeSchemeRE := regexp.MustCompile("^https?://")
 		hostWithoutScheme := removeSchemeRE.ReplaceAllString(a.config.Host, "")
-		a.httpAdminServer.HandleFunc(urlPrefix+"/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		a.httpAdminServer.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-MimeType", "application/json")
 			o := []swagger.Option{
 				swagger.WithHost(hostWithoutScheme),
