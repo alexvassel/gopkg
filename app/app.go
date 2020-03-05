@@ -266,11 +266,11 @@ func (a *App) initAdminHandlers(implDesc *transport.CompoundServiceDesc) {
 		body += `</ul>`
 		_, _ = w.Write([]byte(body))
 	})
-	if urlPrefix != "" {
-		a.httpAdminServer.Get("", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, urlPrefix+"/", 301)
-		})
-	}
+	//if urlPrefix != "" {
+	//	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	//		http.Redirect(w, r, urlPrefix+"/", 301)
+	//	})
+	//}
 	a.httpAdminServer.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, urlPrefix+"/docs/", 301)
 	})
