@@ -2,15 +2,11 @@ package transport
 
 import (
 	"github.com/go-openapi/spec"
+	"github.com/severgroup-tt/gopkg-app/types"
 	"github.com/utrack/clay/v2/transport/swagger"
-	"regexp"
-	"strings"
 )
 
 const int64Type = "int64"
-
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 // SetIntegerTypeForInt64 replace type="string" to type="integer" for format="int64"
 func SetIntegerTypeForInt64() swagger.Option {
@@ -33,7 +29,7 @@ func SetNameSnakeCase() swagger.Option {
 	return func(swagger *spec.Swagger) {
 		for _, definition := range swagger.Definitions {
 			for propName, property := range definition.Properties {
-				propNameSnakeCase := toSnakeCase(propName)
+				propNameSnakeCase := types.CamelToSnakeCase(propName)
 				if propNameSnakeCase != propName {
 					definition.Properties[propNameSnakeCase] = property
 					delete(definition.Properties, propName)
@@ -41,10 +37,4 @@ func SetNameSnakeCase() swagger.Option {
 			}
 		}
 	}
-}
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
 }

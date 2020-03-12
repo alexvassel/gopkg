@@ -22,6 +22,7 @@ func New() *validator.Validate {
 			"str_lte":        ValidateStrLTE,
 			"field_empty":    ValidateFieldEmpty,
 			"field_required": ValidateFieldRequired,
+			"not_up":         ValidateFieldNotUpdated,
 			"time_hhmm":      ValidateTimeHHMM,
 			"time_hhmmss":    ValidateTimeHHMMSS,
 			"min_letter":     ValidateMinLetter,

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"github.com/severgroup-tt/gopkg-app/types"
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
@@ -8,7 +9,7 @@ import (
 
 // ValidateFieldRequired ...
 func ValidateFieldRequired(fl validator.FieldLevel) bool {
-	field, _, ok := fl.GetStructFieldOK()
+	field, _, _, ok := fl.GetStructFieldOK2()
 	if !ok {
 		return true
 	}
@@ -17,11 +18,37 @@ func ValidateFieldRequired(fl validator.FieldLevel) bool {
 
 // ValidateFieldEmpty ...
 func ValidateFieldEmpty(fl validator.FieldLevel) bool {
-	field, _, ok := fl.GetStructFieldOK()
+	field, _, _, ok := fl.GetStructFieldOK2()
 	if !ok {
 		return true
 	}
 	return isEmptyValue(field)
+}
+
+// ValidateFieldNotUpdated checks if the field is participating in the update,
+// this happens if UpdateFields is empty or the current field is listed in UpdateFields
+func ValidateFieldNotUpdated(fl validator.FieldLevel) bool {
+	top := fl.Top()
+	if top.Kind() == reflect.Ptr {
+		top = top.Elem()
+	}
+	updateFields := top.FieldByName("UpdateFields")
+	if updateFields.Kind() != reflect.Slice {
+		return true
+	}
+	if updateFields.Len() == 0 {
+		return false
+	}
+	if updateFields.Index(0).Kind() != reflect.String {
+		return true
+	}
+	fieldName := types.CamelToSnakeCase(fl.FieldName())
+	for i := 0; i < updateFields.Len(); i++ {
+		if updateFields.Index(i).String() == fieldName {
+			return false
+		}
+	}
+	return true
 }
 
 func isEmptyValue(v reflect.Value) bool {

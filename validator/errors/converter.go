@@ -2,6 +2,7 @@ package errors
 
 import (
 	"context"
+	"github.com/severgroup-tt/gopkg-app/types"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -46,7 +47,7 @@ func Converter() errors.ErrorConverter {
 }
 
 func BuildCode(code Code, param interface{}) string {
-	ret := string(code)
+	ret := removeTrashOrCondition(string(code))
 	strParam := ""
 	switch v := param.(type) {
 	case string:
@@ -64,6 +65,12 @@ func BuildCode(code Code, param interface{}) string {
 		ret += ":" + strParam
 	}
 	return ret
+}
+
+var trashOrConditionRE = regexp.MustCompile(`\|?NOT_UP\|?`)
+
+func removeTrashOrCondition(str string) string {
+	return trashOrConditionRE.ReplaceAllString(str, "")
 }
 
 func convertValidationError(ctx context.Context, err validator.ValidationErrors) *errors.Error {
@@ -88,18 +95,9 @@ func convertValidationError(ctx context.Context, err validator.ValidationErrors)
 			}
 		}
 
-		field := toSnakeCase(fieldErr.Field())
+		field := types.CamelToSnakeCase(fieldErr.Field())
 		result = result.WithPayloadKV(field, BuildCode(value, fieldErr.Param()))
 	}
 
 	return result
-}
-
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
 }

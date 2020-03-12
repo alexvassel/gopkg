@@ -78,3 +78,80 @@ func Test_validateFieldEmpty(t *testing.T) {
 		assert.Nil(t, err)
 	})
 }
+
+func Test_validateFieldNotUpdated(t *testing.T) {
+	v := validator.New()
+	err := v.RegisterValidation("not_up", ValidateFieldNotUpdated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	type check struct {
+		FirstValue   string `validate:"not_up=First|min=1"`
+		SecondValue  string
+		UpdateFields []string
+	}
+
+	cs := []struct {
+		message string
+		value   check
+		valid   bool
+	}{
+		{
+			message: "FirstValid, UpdateFieldsEmpty, Success",
+			value: check{
+				FirstValue:   "valid",
+				UpdateFields: []string{},
+			},
+			valid: true,
+		},
+		{
+			message: "FirstNotValid, UpdateFieldsEmpty, Failed",
+			value: check{
+				FirstValue:   "",
+				UpdateFields: []string{},
+			},
+			valid: false,
+		},
+		{
+			message: "FirstValid, UpdateFieldsThat, Success",
+			value: check{
+				FirstValue:   "valid",
+				UpdateFields: []string{"first_value"},
+			},
+			valid: true,
+		},
+		{
+			message: "FirstValid, UpdateFieldsThatAndOther, Success",
+			value: check{
+				FirstValue:   "valid",
+				UpdateFields: []string{"zero", "first_value", "second"},
+			},
+			valid: true,
+		},
+		{
+			message: "FirstNotValid, UpdateFieldsThat, Failed",
+			value: check{
+				FirstValue:   "",
+				UpdateFields: []string{"first_value"},
+			},
+			valid: false,
+		},
+		{
+			message: "FirstNotValid, UpdateFieldsOther, Success",
+			value: check{
+				FirstValue:   "",
+				UpdateFields: []string{"second"},
+			},
+			valid: true,
+		},
+	}
+
+	for _, c := range cs {
+		err := v.Struct(c.value)
+		if c.valid {
+			assert.Nil(t, err, c.message)
+		} else {
+			assert.NotNil(t, err, c.message)
+		}
+	}
+}
