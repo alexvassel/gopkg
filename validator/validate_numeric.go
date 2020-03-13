@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"regexp"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -44,4 +45,15 @@ func ValidateStrLTE(fl validator.FieldLevel) bool {
 	}
 
 	return lval <= rval
+}
+
+var strIntRE = regexp.MustCompile(`^\d*$`)
+
+// ValidateStrInt ...
+func ValidateStrInt(fl validator.FieldLevel) bool {
+	val := fl.Field().String()
+	if len(val) == 0 {
+		return true
+	}
+	return strIntRE.MatchString(val)
 }

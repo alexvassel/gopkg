@@ -20,6 +20,7 @@ func New() *validator.Validate {
 			"date_rfc3339":   ValidateDateRfc3339,
 			"str_gte":        ValidateStrGTE,
 			"str_lte":        ValidateStrLTE,
+			"str_int":        ValidateStrInt,
 			"field_empty":    ValidateFieldEmpty,
 			"field_required": ValidateFieldRequired,
 			"not_up":         ValidateFieldNotUpdated,
