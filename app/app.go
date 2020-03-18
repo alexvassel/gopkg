@@ -201,14 +201,17 @@ func getDefaultUnaryInterceptor(appName string) []grpc.UnaryServerInterceptor {
 }
 
 func getDefaultPublicMiddleware(appVersion string) []func(http.Handler) http.Handler {
-	return []func(http.Handler) http.Handler{
+	ret := make([]func(http.Handler) http.Handler, 0, 10)
+	ret = append(ret, middleware.NewTimingMiddleware()...)
+	ret = append(ret,
 		middleware.NewHeartbeatMiddleware(),
 		middleware.NewCorsMiddleware(),
 		middleware.NewRequestIdMiddleware(),
 		middleware.NewLogMiddleware(),
 		middleware.NewNoCacheMiddleware(),
 		middleware.NewVersionMiddleware(appVersion),
-	}
+	)
+	return ret
 }
 
 func (a *App) initServers() error {

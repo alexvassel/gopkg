@@ -7,7 +7,7 @@ import (
 	"github.com/go-openapi/runtime/middleware/header"
 )
 
-func AddAccept(offer string, excludePaths []string) func(next http.Handler) http.Handler {
+func NewAddAcceptMiddleware(offer string, excludePaths []string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		excludePaths = append(excludePaths, "/", "/favicon.ico", "/debug/*")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
