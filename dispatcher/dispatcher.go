@@ -2,7 +2,7 @@ package dispatcher
 
 import (
 	"context"
-	"github.com/severgroup-tt/gopkg-app/sentry"
+	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	logger "github.com/severgroup-tt/gopkg-logger"
 	"sync"
 )

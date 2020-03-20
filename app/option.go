@@ -2,9 +2,9 @@ package app
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"github.com/severgroup-tt/gopkg-app/metrics"
 	"github.com/severgroup-tt/gopkg-app/middleware"
-	"github.com/severgroup-tt/gopkg-app/sentry"
 	"github.com/severgroup-tt/gopkg-app/tracing"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"

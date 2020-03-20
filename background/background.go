@@ -3,7 +3,7 @@ package background
 import (
 	"context"
 	"fmt"
-	"github.com/severgroup-tt/gopkg-app/sentry"
+	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"runtime"
 	"strings"
 	"time"

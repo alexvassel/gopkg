@@ -18,9 +18,9 @@ import (
 	"time"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"github.com/severgroup-tt/gopkg-app/closer"
 	"github.com/severgroup-tt/gopkg-app/metrics"
-	"github.com/severgroup-tt/gopkg-app/sentry"
 	swaggerui "github.com/severgroup-tt/gopkg-app/swagger"
 	pkgtransport "github.com/severgroup-tt/gopkg-app/transport"
 	pkgvalidator "github.com/severgroup-tt/gopkg-app/validator"
