@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const endpoint = "https://topmind.talenttechlab.org/api/v1/event"
+const endpoint = "https://api.topmind.io/api/v1/event"
 
 type Action string
 
