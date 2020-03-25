@@ -57,13 +57,13 @@ func NewLogUnaryInterceptor(service string) grpc.UnaryClientInterceptor {
 		values = append(values, service, cc.Target(), method, req, reply, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {
 		case INFO:
-			logger.Log(ctx, message, values...)
+			logger.Info(ctx, message, values...)
 		case ERROR:
 			logger.Error(ctx, message, values...)
 		case DEBUG:
 			logger.Debug(ctx, message, values...)
 		default:
-			logger.Log(ctx, message, values...)
+			logger.Info(ctx, message, values...)
 		}
 
 		return err
@@ -86,13 +86,13 @@ func NewLogStreamInterceptor(service string) grpc.StreamClientInterceptor {
 		values = append(values, service, cc.Target(), method, status.Code(err).String(), err, time.Since(startedAt))
 		switch logLevel {
 		case INFO:
-			logger.Log(ctx, message, values...)
+			logger.Info(ctx, message, values...)
 		case ERROR:
 			logger.Error(ctx, message, values...)
 		case DEBUG:
 			logger.Debug(ctx, message, values...)
 		default:
-			logger.Log(ctx, message, values...)
+			logger.Info(ctx, message, values...)
 		}
 
 		return clientStream, err

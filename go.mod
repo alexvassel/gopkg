@@ -32,3 +32,5 @@ require (
 	google.golang.org/grpc v1.22.0
 	gopkg.in/satori/go.uuid.v1 v1.2.0
 )
+
+replace github.com/severgroup-tt/gopkg-logger v0.0.3 => ../gopkg-logger

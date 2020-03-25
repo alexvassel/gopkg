@@ -131,9 +131,9 @@ func (a *App) AddBackground(name string, tickRate, timeout time.Duration, proces
 }
 
 func GracefulDelay(serviceName string) {
-	logger.Log(logger.App, serviceName+": waiting stop of traffic")
+	logger.Info(logger.App, serviceName+": waiting stop of traffic")
 	time.Sleep(gracefulDelay)
-	logger.Log(logger.App, serviceName+": shutting down")
+	logger.Info(logger.App, serviceName+": shutting down")
 }
 
 func (a *App) runServers(impl *transport.CompoundServiceDesc) {
@@ -157,7 +157,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 			_, _ = w.Write(a.favicon)
 		})
 		if a.customEnablePprof {
-			logger.Log(logger.App, "PPROF enabled")
+			logger.Info(logger.App, "PPROF enabled")
 			a.httpServer.Mount("/debug", chiwm.Profiler())
 		}
 		for _, h := range a.customPublicHandler {
@@ -215,14 +215,14 @@ func getDefaultPublicMiddleware(appVersion string) []func(http.Handler) http.Han
 }
 
 func (a *App) initServers() error {
-	logger.Log(logger.App, "App '%s' version '%s' in %s started",
+	logger.Info(logger.App, "App '%s' version '%s' in %s started",
 		a.config.Name,
 		a.config.Version,
 		a.config.Env,
 	)
 
 	if a.config.Listener.HttpPort != 0 {
-		logger.Log(logger.App, "Starting public HTTP listener at %s:%d", a.config.Listener.Host, a.config.Listener.HttpPort)
+		logger.Info(logger.App, "Starting public HTTP listener at %s:%d", a.config.Listener.Host, a.config.Listener.HttpPort)
 		httpListener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", a.config.Listener.Host, a.config.Listener.HttpPort))
 		if err != nil {
 			return err
@@ -232,7 +232,7 @@ func (a *App) initServers() error {
 	}
 
 	if a.config.Listener.HttpAdminPort != 0 {
-		logger.Log(logger.App, "Starting admin HTTP listener at %s:%d", a.config.Listener.Host, a.config.Listener.HttpAdminPort)
+		logger.Info(logger.App, "Starting admin HTTP listener at %s:%d", a.config.Listener.Host, a.config.Listener.HttpAdminPort)
 		httpAdminListener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", a.config.Listener.Host, a.config.Listener.HttpAdminPort))
 		if err != nil {
 			return err
@@ -242,7 +242,7 @@ func (a *App) initServers() error {
 	}
 
 	if a.config.Listener.GrpcPort != 0 {
-		logger.Log(logger.App, "Starting GRPC listener at %s:%d", a.config.Listener.Host, a.config.Listener.GrpcPort)
+		logger.Info(logger.App, "Starting GRPC listener at %s:%d", a.config.Listener.Host, a.config.Listener.GrpcPort)
 		grpcListener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", a.config.Listener.Host, a.config.Listener.GrpcPort))
 		if err != nil {
 			return err
@@ -353,7 +353,7 @@ func (a *App) runGRPC() {
 		}()
 		select {
 		case <-done:
-			logger.Log(logger.App, "grpc: gracefully stopped")
+			logger.Info(logger.App, "grpc: gracefully stopped")
 		case <-ctx.Done():
 			err := errors.Internal.Err(context.Background(), "grpc: error during shutdown server").
 				WithLogKV("error", ctx.Err())
@@ -369,7 +369,7 @@ func (a *App) runPublicHTTP() {
 	publicServer := &http.Server{Handler: a.httpServer}
 	go func() {
 		if err := publicServer.Serve(a.httpListener); err != nil {
-			logger.Log(logger.App, "http.public: %s", err)
+			logger.Info(logger.App, "http.public: %s", err)
 			a.publicCloser.CloseAll()
 		}
 	}()
@@ -384,7 +384,7 @@ func (a *App) runPublicHTTP() {
 			return errors.Internal.Err(context.Background(), "http.public: error during shutdown").
 				WithLogKV("error", err)
 		}
-		logger.Log(logger.App, "http.public: gracefully stopped")
+		logger.Info(logger.App, "http.public: gracefully stopped")
 		return nil
 	})
 }
@@ -393,7 +393,7 @@ func (a *App) runAdminHTTP() {
 	adminServer := &http.Server{Handler: a.httpAdminServer}
 	go func() {
 		if err := adminServer.Serve(a.httpAdminListener); err != nil {
-			logger.Log(logger.App, "admin.public: %s", err)
+			logger.Info(logger.App, "admin.public: %s", err)
 			a.publicCloser.CloseAll()
 		}
 	}()
@@ -408,7 +408,7 @@ func (a *App) runAdminHTTP() {
 			return errors.Internal.Err(context.Background(), "admin.public: error during shutdown").
 				WithLogKV("error", err)
 		}
-		logger.Log(logger.App, "admin.public: gracefully stopped")
+		logger.Info(logger.App, "admin.public: gracefully stopped")
 		return nil
 	})
 }

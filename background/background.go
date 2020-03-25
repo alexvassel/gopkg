@@ -40,7 +40,7 @@ func (j *job) Run(ctx context.Context) error {
 		o(j)
 	}
 	ctx, j.cancel = context.WithCancel(ctx)
-	logger.Log(ctx, "Startup background %s, tick-rate %s, timeout %s", j.Name, j.TickRate, j.Timeout)
+	logger.Info(ctx, "Startup background %s, tick-rate %s, timeout %s", j.Name, j.TickRate, j.Timeout)
 
 	for {
 		select {
@@ -48,7 +48,7 @@ func (j *job) Run(ctx context.Context) error {
 			return ctx.Err()
 
 		case <-time.After(j.TickRate):
-			logger.Log(ctx, "Start background %s", j.Name)
+			logger.Info(ctx, "Start background %s", j.Name)
 			if j.dbConn != nil {
 				ctx = database.NewContext(ctx, j.dbConn)
 			}

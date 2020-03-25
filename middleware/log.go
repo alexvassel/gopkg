@@ -44,7 +44,7 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 				))
 			}
 
-			logger.Log(r.Context(), "%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs)
+			logger.Info(r.Context(), "%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs)
 		})
 	}
 }
@@ -52,12 +52,16 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 func NewLogInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		str, _ := json.Marshal(req)
-		logger.Log(ctx, "Request: %s", str)
+		if len(str) > 500 {
+			logger.Info(ctx, "Request: %s ...", str[:500])
+		} else {
+			logger.Info(ctx, "Request: %s", str)
+		}
 
 		resp, err = handler(ctx, req)
 
 		//str, _ = json.Marshal(resp)
-		//logger.Log(ctx, "Response: %s", str)
+		//logger.Info(ctx, "Response: %s", str)
 
 		sentry.Error(err)
 

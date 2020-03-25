@@ -19,11 +19,11 @@ func Init(project, token string, flushTimeout time.Duration) error {
 	dsn := fmt.Sprintf("https://%s@sentry.io/%s", token, project)
 	err := sentry.Init(sentry.ClientOptions{Dsn: dsn})
 	if err != nil {
-		logger.Log(logger.App, "Can't connect to Sentry dsn "+dsn+": "+err.Error())
+		logger.Info(logger.App, "Can't connect to Sentry dsn "+dsn+": "+err.Error())
 		return errors.Internal.ErrWrap(context.Background(), "Sentry initialization failed", err).
 			WithLogKV("project", project, "token", token, "dsn", dsn)
 	}
-	logger.Log(logger.App, "Connect to Sentry project "+project)
+	logger.Info(logger.App, "Connect to Sentry project "+project)
 	instance = &sentryConfig{flushTimeout: flushTimeout}
 	return nil
 }
