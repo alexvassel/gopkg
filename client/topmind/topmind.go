@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,6 +38,9 @@ const (
 
 type client struct {
 	Token string
+	LogSuccess bool
+	RetryMaxAttempt int
+	RetryInterval time.Duration
 }
 
 type request struct {
@@ -54,13 +58,18 @@ type response struct {
 	Message string `json:"message"`
 }
 
-func NewClient(token string) IClient {
+func NewClient(token string, option ...Option) IClient {
 	if token == "" {
 		return &noop{}
 	}
-	return &client{
+	c := &client{
 		Token: token,
 	}
+	for _, f := range option {
+		f(c)
+	}
+	logger.Info(logger.App, "Topmind: connected with token %s%s", strings.Repeat("*", len(token)-3), token[len(token)-3:])
+	return c
 }
 
 func (c client) getTimeAction(dt time.Time) int64 {
@@ -218,10 +227,23 @@ func (c client) send(ctx context.Context, req request) error {
 	httpReq.Header.Set("Authorization", "Bearer "+c.Token)
 
 	client := &http.Client{}
-	httpResp, err := client.Do(httpReq)
-	if err != nil {
-		return errors.Internal.Err(ctx, "Can't send topmind request").WithLogKV("request", req)
+
+	var httpResp *http.Response
+	var httpErr error
+	attempt := c.RetryMaxAttempt
+	for {
+		httpResp, httpErr = client.Do(httpReq)
+		if httpErr == nil || attempt <= 1 {
+			break
+		}
+		attempt--
+		time.Sleep(c.RetryInterval)
 	}
+	if httpErr != nil {
+		return errors.Internal.ErrWrap(ctx, "Can't send topmind request", httpErr).
+			WithLogKV("request", req)
+	}
+
 	defer httpResp.Body.Close()
 
 	body, err := ioutil.ReadAll(httpResp.Body)
@@ -236,6 +258,11 @@ func (c client) send(ctx context.Context, req request) error {
 
 	if resp.Status != "success" {
 		return errors.Internal.Err(ctx, "Error in topmind response").WithLogKV("message", resp.Message)
+	}
+
+	if c.LogSuccess {
+		logger.Info(ctx, "Send topmind event %s %s:%s: v%d %v",
+			req.Action, req.EntityType, req.EntityID, req.DataVersion, req.Data)
 	}
 
 	return nil
