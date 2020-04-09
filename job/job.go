@@ -2,10 +2,9 @@ package job
 
 import (
 	"context"
-	"reflect"
-
 	"github.com/gocraft/work"
 	"github.com/severgroup-tt/gopkg-errors"
+	"reflect"
 )
 
 const nameProperty = "jobName"
@@ -48,7 +47,7 @@ func getJobName(ctx context.Context, job interface{}) (string, error) {
 	return jobName, nil
 }
 
-func buildArgs(ctx context.Context, job interface{}) (map[string]interface{}, error) {
+func packArguments(ctx context.Context, job interface{}) (map[string]interface{}, error) {
 	st := reflect.ValueOf(job)
 	if st.Kind() == reflect.Ptr {
 		st = st.Elem()
@@ -62,18 +61,33 @@ func buildArgs(ctx context.Context, job interface{}) (map[string]interface{}, er
 		}
 		kind := st.Type().Field(i).Type.Kind()
 		switch kind {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.String, reflect.Bool:
-			ret[st.Type().Field(i).Name] = st.Field(i).Interface()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			ret[name] = float64(st.Field(i).Int())
+		case reflect.String, reflect.Bool:
+			ret[name] = st.Field(i).Interface()
+		case reflect.Slice:
+			sliceKind := st.Type().Field(i).Type.Elem().Kind()
+			switch sliceKind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				sliceNumField := st.Field(i).Len()
+				slice := make([]interface{}, 0, sliceNumField)
+				for n := 0; n < sliceNumField; n++ {
+					slice = append(slice, float64(st.Field(i).Index(n).Int()))
+				}
+				ret[name] = slice
+			default:
+				return nil, errors.Internal.Err(ctx, "Unsupported slice argument type").
+					WithLogKV("arg", name, "kind", sliceKind)
+			}
 		default:
 			return nil, errors.Internal.Err(ctx, "Unsupported argument type").
 				WithLogKV("arg", name, "kind", kind)
 		}
-
 	}
 	return ret, nil
 }
 
-func FillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
+func UnpackArguments(ctx context.Context, job interface{}, workJob *work.Job) error {
 	st := reflect.ValueOf(job)
 	if st.Kind() != reflect.Ptr {
 		return errors.Internal.Err(ctx, "Job should be pointer")
@@ -90,8 +104,9 @@ func FillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
 			continue
 		}
 		var castOk bool
-		kind := st.Type().Field(i).Type.Kind()
-		switch kind {
+		fieldType := st.Type().Field(i).Type
+		fieldKind := fieldType.Kind()
+		switch fieldKind {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if v, ok := value.(float64); ok {
 				st.Field(i).SetInt(int64(v))
@@ -107,13 +122,51 @@ func FillArgs(ctx context.Context, job interface{}, workJob *work.Job) error {
 				st.Field(i).SetBool(v)
 				castOk = true
 			}
+		case reflect.Slice:
+			sliceKind := st.Type().Field(i).Type.Elem().Kind()
+			switch sliceKind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if v, ok := value.([]interface{}); ok {
+					var slice reflect.Value
+					sliceNumField := len(v)
+					slice = reflect.MakeSlice(fieldType, sliceNumField, sliceNumField)
+					for n, vInterface := range v {
+						vFloat64, ok := vInterface.(float64)
+						if !ok {
+							return errors.Internal.Err(ctx, "Cant cast Job argument: not cast slice item").
+								WithLogKV("name", name, "kind", sliceKind, "index", n, "value", vInterface)
+						}
+						item := slice.Index(n)
+						switch sliceKind {
+						case reflect.Int:
+							item.Set(reflect.ValueOf(int(vFloat64)))
+						case reflect.Int8:
+							item.Set(reflect.ValueOf(int8(vFloat64)))
+						case reflect.Int16:
+							item.Set(reflect.ValueOf(int16(vFloat64)))
+						case reflect.Int32:
+							item.Set(reflect.ValueOf(int32(vFloat64)))
+						case reflect.Int64:
+							item.Set(reflect.ValueOf(int64(vFloat64)))
+						default:
+							return errors.Internal.Err(ctx, "Cant cast Job argument: not slice implemented").
+								WithLogKV("name", name, "kind", sliceKind, "index", n, "value", workJob.Args[name])
+						}
+					}
+					st.Field(i).Set(slice)
+					castOk = true
+				}
+			default:
+				return errors.Internal.Err(ctx, "Cant cast Job argument: not slice implemented").
+					WithLogKV("name", name, "kind", sliceKind, "value", workJob.Args[name])
+			}
 		default:
 			return errors.Internal.Err(ctx, "Cant cast Job argument: not implemented").
-				WithLogKV("name", name, "kind", kind, "value", workJob.Args[name])
+				WithLogKV("name", name, "kind", fieldKind, "value", workJob.Args[name])
 		}
 		if !castOk {
 			return errors.Internal.Err(ctx, "Cant cast Job argument").
-				WithLogKV("name", name, "kind", kind, "value", workJob.Args[name])
+				WithLogKV("name", name, "kind", fieldKind, "value", workJob.Args[name])
 		}
 	}
 	return nil

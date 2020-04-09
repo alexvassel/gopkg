@@ -9,47 +9,61 @@ import (
 )
 
 type testJob struct {
-	jobName struct{} `Job:"job_name"`
-	//Int     int
-	//Int32   int32
-	//Int64   int64
-	String string
-	Bool   bool
+	jobName    struct{} `Job:"job_name"`
+	Int        int
+	Int32      int32
+	Int64      int64
+	String     string
+	Bool       bool
+	SliceInt   []int
+	SliceInt8  []int8
+	SliceInt16 []int16
+	SliceInt32 []int32
+	SliceInt64 []int64
 }
 
 func TestJob(t *testing.T) {
-	// TODO внутри все целые числа хранит во float64, надо чтото делать с этим
 	job := testJob{
-		//Int:    1,
-		//Int32:  2,
-		//Int64:  3,
-		String: "4",
-		Bool:   true,
+		Int:        1,
+		Int32:      2,
+		Int64:      3,
+		String:     "4",
+		Bool:       true,
+		SliceInt:   []int{10, 20, 30},
+		SliceInt8:  []int8{11, 21, 31},
+		SliceInt16: []int16{12, 22, 32},
+		SliceInt32: []int32{13, 23, 33},
+		SliceInt64: []int64{14, 24, 34},
 	}
-	args := map[string]interface{}{
-		//"Int":    int(1),
-		//"Int32":  int32(2),
-		//"Int64":  int64(3),
-		"String": "4",
-		"Bool":   true,
+	packArgs := map[string]interface{}{
+		"Int":        float64(1),
+		"Int32":      float64(2),
+		"Int64":      float64(3),
+		"String":     "4",
+		"Bool":       true,
+		"SliceInt":   []interface{}{float64(10), float64(20), float64(30)},
+		"SliceInt8":  []interface{}{float64(11), float64(21), float64(31)},
+		"SliceInt16": []interface{}{float64(12), float64(22), float64(32)},
+		"SliceInt32": []interface{}{float64(13), float64(23), float64(33)},
+		"SliceInt64": []interface{}{float64(14), float64(24), float64(34)},
 	}
 
-	t.Run("Build args", func(t *testing.T) {
-		gotArgs, err := buildArgs(context.Background(), job)
+	t.Run("Pack arguments", func(t *testing.T) {
+		gotArgs, err := packArguments(context.Background(), job)
 
 		assert.Nil(t, err)
-		assert.Equal(t, args, gotArgs)
+		assert.Equal(t, packArgs, gotArgs)
 	})
 
-	t.Run("Build args pointer", func(t *testing.T) {
-		gotArgs, err := buildArgs(context.Background(), &job)
+	t.Run("Pack arguments (pointer)", func(t *testing.T) {
+		gotArgs, err := packArguments(context.Background(), &job)
 		assert.Nil(t, err)
-		assert.Equal(t, args, gotArgs)
+		assert.Equal(t, packArgs, gotArgs)
 	})
 
-	t.Run("Fill args", func(t *testing.T) {
+	t.Run("Unpack arguments", func(t *testing.T) {
 		gotJob := testJob{}
-		err := FillArgs(context.Background(), &gotJob, &work.Job{Args: args})
+		err := UnpackArguments(context.Background(), &gotJob, &work.Job{Args: packArgs})
 		assert.Nil(t, err)
 		assert.Equal(t, job, gotJob)
 	})

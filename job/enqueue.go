@@ -22,7 +22,7 @@ func (e *Enqueue) AddJob(ctx context.Context, job interface{}) error {
 	if err != nil {
 		return err
 	}
-	args, err := buildArgs(ctx, job)
+	args, err := packArguments(ctx, job)
 	if err != nil {
 		return err
 	}
