@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const requestIDHeaderName = "X-Request-Id"
+
 var prefix string
 
 func SetRequestId(ctx context.Context) context.Context {
@@ -23,7 +25,15 @@ func GetRequestId(ctx context.Context) string {
 }
 
 func NewRequestIdMiddleware() func(next http.Handler) http.Handler {
-	return middleware.RequestID
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			if key, ok := r.Context().Value(middleware.RequestIDKey).(string); ok {
+				w.Header().Set(requestIDHeaderName, key)
+			}
+			next.ServeHTTP(w, r)
+		}
+		return middleware.RequestID(http.HandlerFunc(fn))
+	}
 }
 
 func init() {
