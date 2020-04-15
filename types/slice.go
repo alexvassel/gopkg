@@ -35,6 +35,15 @@ func SliceIntContains(s []int, e int) bool {
 	return false
 }
 
+func SliceInt32Contains(s []int32, e int32) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func SliceInt64Contains(s []int64, e int64) bool {
 	for _, a := range s {
 		if a == e {
@@ -74,4 +83,23 @@ func SliceUniqueInt(intSlice []int) []int {
 		}
 	}
 	return ret
+}
+
+func SliceUniqueInt64(intSlice []int64) []int64 {
+	keys := make(map[int64]struct{}, len(intSlice))
+	ret := make([]int64, 0, len(intSlice))
+	for _, item := range intSlice {
+		if _, ok := keys[item]; !ok {
+			keys[item] = struct{}{}
+			ret = append(ret, item)
+		}
+	}
+	return ret
+}
+
+func SliceNotZeroInt64(id int64) []int64 {
+	if id == 0 {
+		return []int64{}
+	}
+	return []int64{id}
 }
