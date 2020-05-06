@@ -1,6 +1,6 @@
 module github.com/severgroup-tt/gopkg-app
 
-go 1.12
+go 1.14
 
 require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -22,9 +22,9 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v0.9.2
 	github.com/robfig/cron v1.2.0 // indirect
-	github.com/severgroup-tt/gopkg-database v0.3.0
-	github.com/severgroup-tt/gopkg-errors v0.1.0
-	github.com/severgroup-tt/gopkg-logger v0.1.0
+	github.com/severgroup-tt/gopkg-database v0.3.2
+	github.com/severgroup-tt/gopkg-errors v0.1.1
+	github.com/severgroup-tt/gopkg-logger v0.1.1
 	github.com/stretchr/testify v1.4.0
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
