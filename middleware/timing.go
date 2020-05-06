@@ -18,7 +18,10 @@ func (v *timingResponseWriter) Write(bytes []byte) (int, error) {
 		v.startMetric.Stop()
 		// github.com/mitchellh/go-server-timing пишет заголовки при отдаче кода ответа
 		// если начало писать ответ - считаем что запрос завершится успешно
-		v.ResponseWriter.WriteHeader(200)
+		// Костыль, если произошла ошибка второй раз не отправляем заголовок
+		if len(bytes) > 8 && string(bytes[:8]) != `{"error"` {
+			v.ResponseWriter.WriteHeader(200)
+		}
 		v.headerWritten = true
 	}
 	return v.ResponseWriter.Write(bytes)

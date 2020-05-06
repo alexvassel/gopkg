@@ -13,14 +13,24 @@ import (
 	"time"
 )
 
+const loggerLevel = 500
+
 type loggedResponseWriter struct {
 	http.ResponseWriter
 	status int
+	error string
 }
 
 func (v *loggedResponseWriter) WriteHeader(code int) {
 	v.status = code
 	v.ResponseWriter.WriteHeader(code)
+}
+
+func (v *loggedResponseWriter) Write(bytes []byte) (int, error) {
+	if v.status >= loggerLevel {
+		v.error += string(bytes)
+	}
+	return v.ResponseWriter.Write(bytes)
 }
 
 func NewLogMiddleware() func(next http.Handler) http.Handler {
@@ -37,10 +47,11 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 			reqDurationMs := (time.Now().UnixNano() - start) / int64(time.Millisecond)
 			metrics.ResponseTime.Observe(float64(reqDurationMs))
 
-			if lr.status >= 500 {
+			if lr.status >= loggerLevel {
+				logger.Error(r.Context(), lr.error)
 				sentry.Error(errors.Internal.Err(
 					r.Context(),
-					fmt.Sprintf("%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs),
+					fmt.Sprintf("%v %d %s %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, lr.error, reqDurationMs),
 				))
 			}
 
