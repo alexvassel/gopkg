@@ -35,7 +35,14 @@ func WithPublicCloser(fn ...PublicCloserFn) OptionFn {
 	}
 }
 
-func WithUnaryInterceptor(interceptor ...grpc.UnaryServerInterceptor) OptionFn {
+func WithUnaryPrependInterceptor(interceptor ...grpc.UnaryServerInterceptor) OptionFn {
+	return func(a *App) error {
+		a.unaryInterceptor = append(interceptor, a.unaryInterceptor...)
+		return nil
+	}
+}
+
+func WithUnaryAppendInterceptor(interceptor ...grpc.UnaryServerInterceptor) OptionFn {
 	return func(a *App) error {
 		a.unaryInterceptor = append(a.unaryInterceptor, interceptor...)
 		return nil

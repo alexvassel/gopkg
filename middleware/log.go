@@ -37,7 +37,7 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 			reqDurationMs := (time.Now().UnixNano() - start) / int64(time.Millisecond)
 			metrics.ResponseTime.Observe(float64(reqDurationMs))
 
-			if lr.status == 500 {
+			if lr.status >= 500 {
 				sentry.Error(errors.Internal.Err(
 					r.Context(),
 					fmt.Sprintf("%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs),
@@ -51,12 +51,22 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 
 func NewLogInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		msgFormat := "method: %s, request: %s"
 		str, _ := json.Marshal(req)
 		if len(str) > 500 {
-			logger.Info(ctx, "Request: %s ...", str[:500])
-		} else {
-			logger.Info(ctx, "Request: %s", str)
+			str = str[:500]
+			msgFormat += " ..."
 		}
+		msgParam := []interface{}{info.FullMethod, str}
+		kvList := logExtraFromContext(ctx)
+		if len(kvList)&1 == 1 {
+			kvList = append(kvList, "?")
+		}
+		for i := 0; i < len(kvList); i += 2 {
+			msgFormat = "%s: %v, " + msgFormat
+			msgParam = append([]interface{}{kvList[i], kvList[i+1]}, msgParam...)
+		}
+		logger.Info(ctx, msgFormat, msgParam...)
 
 		resp, err = handler(ctx, req)
 
