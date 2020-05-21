@@ -8,54 +8,80 @@ import (
 )
 
 const DateFormatYMD = "2006-01-02"
-const week = time.Hour * 24 * 7
 
 var DateParseError = errors.Internal.Err(context.Background(), `TimeParseError: should be a string formatted as "2006-01-02"`)
 
-func NewDate(val string) (*Date, error) {
-	ret := &Date{}
-	err := ret.UnmarshalJSON([]byte(`"` + val + `"`))
-	return ret, err
+func NewDate(t *time.Time) Date {
+	return Date{t: t}
+}
+
+func NewNotEmptyDateFromString(s string) (Date, error) {
+	if s == "" {
+		return Date{}, errors.Internal.Err(context.Background(), "TimeParseError: should be not empty")
+	}
+	d, err := NewDateFromString(s)
+	if err != nil {
+		return Date{}, err
+	}
+	return d, nil
+}
+
+func NewDateFromString(s string) (Date, error) {
+	d := Date{}
+	if s == "" {
+		return d, nil
+	}
+	if err := d.decode(s); err != nil {
+		return d, err
+	}
+	return d, nil
 }
 
 type Date struct {
-	time.Time
-}
-
-func (d Date) ToString() string {
-	return d.Format(DateFormatYMD)
+	t *time.Time
 }
 
 func (d Date) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + d.Format(DateFormatYMD) + `"`), nil
+	if d.t == nil {
+		return []byte(`""`), nil
+	}
+	return []byte(`"` + d.t.Format(DateFormatYMD) + `"`), nil
 }
 
 func (d *Date) UnmarshalJSON(b []byte) error {
 	s := string(b)
-	if len(s) != 12 {
+	return d.decode(s[1:11])
+}
+
+func (d *Date) decode(s string) error {
+	if len(s) != 10 {
 		return DateParseError.WithPayloadKV("actual", s)
 	}
-	ret, err := time.Parse(DateFormatYMD, s[1:11])
+	ret, err := time.Parse(DateFormatYMD, s)
 	if err != nil {
 		return err
 	}
-	d.Time = ret
+	d.t = &ret
 	return nil
 }
 
-func StringToDate(str string) (*time.Time, error) {
-	if str == "" {
-		return nil, nil
-	}
-
-	t, err := time.Parse(DateFormatYMD, str)
-
-	return &t, err
-}
-
-func DateToString(date *time.Time) string {
-	if date == nil {
+func (d Date) ToYMD() string {
+	if d.t == nil {
 		return ""
 	}
-	return date.Format(DateFormatYMD)
+	return d.t.Format(DateFormatYMD)
+}
+
+func (d Date) ToTime() *time.Time {
+	return d.t
+}
+
+func (d Date) Equal(dt *time.Time) bool {
+	if d.t == nil {
+		return dt == nil
+	}
+	if dt == nil {
+		return d.t == nil
+	}
+	return d.t.Equal(*dt)
 }
