@@ -257,8 +257,8 @@ github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6So
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
-github.com/severgroup-tt/gopkg-database v0.3.3 h1:sXLwd/cPdXyHZBFa9XejzpUmQx1oKemCM1GkPMx4PIw=
-github.com/severgroup-tt/gopkg-database v0.3.3/go.mod h1:4A5pLDpocAzmb7H4b5iIGCfBaGPDHDI6i3L6zCVJjPs=
+github.com/severgroup-tt/gopkg-database v0.3.5 h1:WBI6ntusI4NGVgtR1DZxsVwB9ZwjTtpdh0JUaSnC5zk=
+github.com/severgroup-tt/gopkg-database v0.3.5/go.mod h1:4A5pLDpocAzmb7H4b5iIGCfBaGPDHDI6i3L6zCVJjPs=
 github.com/severgroup-tt/gopkg-errors v0.1.2 h1:e0KRDzX22CjVVLPXVheQBT+Hu42YsuNQqrxrhfN6VB0=
 github.com/severgroup-tt/gopkg-errors v0.1.2/go.mod h1:R8XL2WgTtbFrYoiiOnHvCGM8KOuph22t53SCl7PpAq4=
 github.com/severgroup-tt/gopkg-logger v0.1.1 h1:BuoY3DRj33f6MtL0nvJ87GSArJ3fY7wfHnYfaiuDEjA=
