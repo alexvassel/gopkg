@@ -30,6 +30,9 @@ type TimeMin struct {
 }
 
 func (t TimeMin) MarshalJSON() ([]byte, error) {
+	if t.t == nil {
+		return []byte(`0`), nil
+	}
 	return []byte(strconv.Itoa(t.t.Hour()*60 + t.t.Minute())), nil
 }
 

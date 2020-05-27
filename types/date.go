@@ -50,6 +50,9 @@ func (d Date) MarshalJSON() ([]byte, error) {
 
 func (d *Date) UnmarshalJSON(b []byte) error {
 	s := string(b)
+	if s == `""` {
+		return nil
+	}
 	return d.decode(s[1:11])
 }
 

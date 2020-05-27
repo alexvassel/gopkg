@@ -41,11 +41,17 @@ type Time struct {
 }
 
 func (t Time) MarshalJSON() ([]byte, error) {
+	if t.t == nil {
+		return []byte(`""`), nil
+	}
 	return []byte(`"` + t.t.Format(TimeLayout) + `"`), nil
 }
 
 func (t *Time) UnmarshalJSON(b []byte) error {
 	s := string(b)
+	if s == `""` {
+		return nil
+	}
 	return t.decode(s[1:6])
 }
 
