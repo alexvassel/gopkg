@@ -88,3 +88,23 @@ func (d Date) Equal(dt *time.Time) bool {
 	}
 	return d.t.Equal(*dt)
 }
+
+func (d Date) After(dt *time.Time) bool {
+	if d.t == nil {
+		return false
+	}
+	if dt == nil {
+		return true
+	}
+	return d.t.After(*dt)
+}
+
+func (d Date) Before(dt *time.Time) bool {
+	if d.t == nil {
+		return false
+	}
+	if dt == nil {
+		return false
+	}
+	return d.t.Before(*dt)
+}

@@ -30,7 +30,18 @@ func NewTimeFromString(s string) (Time, error) {
 	if s == "" {
 		return t, nil
 	}
-	if err := t.decode(s); err != nil {
+	if err := t.decodeStr(s); err != nil {
+		return t, err
+	}
+	return t, nil
+}
+
+func NewTimeFromInt(min int16) (Time, error) {
+	t := Time{}
+	if min == 0 {
+		return t, nil
+	}
+	if err := t.decodeInt(min); err != nil {
 		return t, err
 	}
 	return t, nil
@@ -52,10 +63,10 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 	if s == `""` {
 		return nil
 	}
-	return t.decode(s[1:6])
+	return t.decodeStr(s[1:6])
 }
 
-func (t *Time) decode(s string) error {
+func (t *Time) decodeStr(s string) error {
 	if len(s) != 5 {
 		return TimeParseError.WithPayloadKV("actual", s)
 	}
@@ -64,6 +75,15 @@ func (t *Time) decode(s string) error {
 		return err
 	}
 	t.t = &ret
+	return nil
+}
+
+func (t *Time) decodeInt(min int16) error {
+	if min > 1440 {
+		return TimeMinMaxError.WithPayloadKV("actual", min)
+	}
+	dt := time.Date(0, 0, 0, int(min)/60, int(min)%60, 0, 0, time.UTC)
+	t.t = &dt
 	return nil
 }
 
@@ -88,11 +108,25 @@ func (t Time) ToTime() time.Time {
 	return *t.t
 }
 
+func (t Time) ToDuration() time.Duration {
+	if t.t == nil {
+		return 0
+	}
+	return time.Minute * time.Duration(t.ToMin())
+}
+
 func (t Time) After(dt time.Time) bool {
+	if t.t == nil {
+		return false
+	}
+	return int16(dt.Hour()*60+dt.Minute()) < t.ToMin()
+}
+
+func (t Time) Before(dt time.Time) bool {
 	if t.t == nil {
 		return true
 	}
-	return dt.Hour() >= t.t.Hour() && dt.Minute() >= t.t.Minute()
+	return int16(dt.Hour()*60+dt.Minute()) >= t.ToMin()
 }
 
 func (t Time) Equal(dt *time.Time) bool {
