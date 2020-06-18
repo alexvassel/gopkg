@@ -2,9 +2,12 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"github.com/gocraft/work"
 	"github.com/severgroup-tt/gopkg-errors"
+	logger "github.com/severgroup-tt/gopkg-logger"
 	"reflect"
+	"time"
 )
 
 const nameProperty = "jobName"
@@ -21,6 +24,7 @@ func registerPeriodicalJob(ctx context.Context, pool *work.WorkerPool, job inter
 	}
 	jobName, _ := getJobName(ctx, job)
 	pool.PeriodicallyEnqueue(schedule, jobName)
+	logger.Info(logger.App, "Add schedule %s for %s", schedule, jobName)
 	return nil
 }
 
@@ -31,6 +35,7 @@ func registerJob(ctx context.Context, pool *work.WorkerPool, job interface{}, fn
 	}
 
 	pool.Job(jobName, fn)
+	logger.Info(logger.App, "Register job %s", jobName)
 	return nil
 }
 
@@ -78,6 +83,14 @@ func packArguments(ctx context.Context, job interface{}) (map[string]interface{}
 			default:
 				return nil, errors.Internal.Err(ctx, "Unsupported slice argument type").
 					WithLogKV("arg", name, "kind", sliceKind)
+			}
+		case reflect.Struct:
+			switch v := st.Field(i).Interface().(type) {
+			case time.Time:
+				ret[name] = v.Format(time.RFC3339)
+			default:
+				return nil, errors.Internal.Err(ctx, "Unsupported struct argument type").
+					WithLogKV("arg", name, "type", fmt.Sprintf("%T", v))
 			}
 		default:
 			return nil, errors.Internal.Err(ctx, "Unsupported argument type").
@@ -149,7 +162,7 @@ func UnpackArguments(ctx context.Context, job interface{}, workJob *work.Job) er
 						case reflect.Int64:
 							item.Set(reflect.ValueOf(int64(vFloat64)))
 						default:
-							return errors.Internal.Err(ctx, "Cant cast Job argument: not slice implemented").
+							return errors.Internal.Err(ctx, "Can't cast Job argument: not slice implemented").
 								WithLogKV("name", name, "kind", sliceKind, "index", n, "value", workJob.Args[name])
 						}
 					}
@@ -157,11 +170,27 @@ func UnpackArguments(ctx context.Context, job interface{}, workJob *work.Job) er
 					castOk = true
 				}
 			default:
-				return errors.Internal.Err(ctx, "Cant cast Job argument: not slice implemented").
+				return errors.Internal.Err(ctx, "Can't cast Job argument: not slice implemented").
 					WithLogKV("name", name, "kind", sliceKind, "value", workJob.Args[name])
 			}
+		case reflect.Struct:
+			switch v := st.Field(i).Interface().(type) {
+			case time.Time:
+				if valueStr, ok := value.(string); ok {
+					dt, err := time.Parse(time.RFC3339, valueStr)
+					if err != nil {
+						return errors.Internal.Err(ctx, "Cant cast Job argument: not parse struct time.Time item").
+							WithLogKV("name", name, "value", v.String())
+					}
+					st.Field(i).Set(reflect.ValueOf(dt))
+					castOk = true
+				}
+			default:
+				return errors.Internal.Err(ctx, "Can't cast Job argument: not struct implemented").
+					WithLogKV("arg", name, "type", fmt.Sprintf("%T", v))
+			}
 		default:
-			return errors.Internal.Err(ctx, "Cant cast Job argument: not implemented").
+			return errors.Internal.Err(ctx, "Can't cast Job argument: not implemented").
 				WithLogKV("name", name, "kind", fieldKind, "value", workJob.Args[name])
 		}
 		if !castOk {

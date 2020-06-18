@@ -1,15 +1,12 @@
 package app
 
-import "github.com/severgroup-tt/gopkg-app/background"
-
 type Config struct {
-	Name       string
-	Version    string
-	Env        string
-	Host       string
-	HostAdmin  string
-	Listener   ConfigListener
-	Background []background.IService
+	Name      string
+	Version   string
+	Env       string
+	Host      string
+	HostAdmin string
+	Listener  ConfigListener
 }
 
 type ConfigListener struct {
