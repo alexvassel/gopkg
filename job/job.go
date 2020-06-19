@@ -52,6 +52,14 @@ func getJobName(ctx context.Context, job interface{}) (string, error) {
 	return jobName, nil
 }
 
+func NewJobWithArgs(ctx context.Context, v interface{}) (*work.Job, error) {
+	args, err := packArguments(ctx, v)
+	if err != nil {
+		return nil, err
+	}
+	return &work.Job{Args: args}, nil
+}
+
 func packArguments(ctx context.Context, job interface{}) (map[string]interface{}, error) {
 	st := reflect.ValueOf(job)
 	if st.Kind() == reflect.Ptr {
