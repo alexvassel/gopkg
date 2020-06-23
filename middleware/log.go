@@ -3,22 +3,24 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"github.com/severgroup-tt/gopkg-app/metrics"
 	errors "github.com/severgroup-tt/gopkg-errors"
 	"github.com/severgroup-tt/gopkg-logger"
 	"google.golang.org/grpc"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 const loggerLevel = 500
 
+var loggerHttpRegisterKey = new(struct{})
+
 type loggedResponseWriter struct {
 	http.ResponseWriter
 	status int
-	error string
+	error  string
 }
 
 func (v *loggedResponseWriter) WriteHeader(code int) {
@@ -42,6 +44,7 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 			start := time.Now().UnixNano()
 
 			lr := &loggedResponseWriter{ResponseWriter: w, status: http.StatusOK}
+			r = r.WithContext(context.WithValue(r.Context(), &loggerHttpRegisterKey, true))
 			next.ServeHTTP(lr, r)
 
 			reqDurationMs := (time.Now().UnixNano() - start) / int64(time.Millisecond)
@@ -49,10 +52,14 @@ func NewLogMiddleware() func(next http.Handler) http.Handler {
 
 			if lr.status >= loggerLevel {
 				logger.Error(r.Context(), lr.error)
-				sentry.Error(errors.Internal.Err(
-					r.Context(),
-					fmt.Sprintf("%v %d %s %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, lr.error, reqDurationMs),
-				))
+				sentry.Error(
+					errors.Internal.Err(r.Context(), lr.error),
+					"http.remote_addr", r.RemoteAddr,
+					"http.status", strconv.Itoa(lr.status),
+					"http.url", r.Method+" "+r.URL.String(),
+					"http.request_time_ms", strconv.FormatInt(reqDurationMs, 10),
+					"request_id", GetRequestId(r.Context()),
+				)
 			}
 
 			logger.Info(r.Context(), "%v %d %s %s %dms", r.RemoteAddr, lr.status, r.Method, r.URL, reqDurationMs)
@@ -84,7 +91,18 @@ func NewLogInterceptor() grpc.UnaryServerInterceptor {
 		//str, _ = json.Marshal(resp)
 		//logger.Info(ctx, "Response: %s", str)
 
-		sentry.Error(err)
+		tagKV := []string{
+			"request_id", GetRequestId(ctx),
+			"grpc.method", info.FullMethod,
+		}
+		// если используется http мидлваря то не отправляем ошибку, просто обогащаем
+		if v, ok := ctx.Value(&loggerHttpRegisterKey).(bool); ok && v {
+			if sentry.ShouldBeProcessed(err) {
+				sentry.ConfigureScope(tagKV...)
+			}
+		} else {
+			sentry.Error(err, tagKV...)
+		}
 
 		return resp, err
 	}

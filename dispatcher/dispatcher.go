@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"context"
 	"github.com/severgroup-tt/gopkg-app/client/sentry"
+	"github.com/severgroup-tt/gopkg-app/middleware"
 	logger "github.com/severgroup-tt/gopkg-logger"
 	"sync"
 )
@@ -50,7 +51,10 @@ func (d *Dispatcher) Dispatch(ctx context.Context, name Event, msg interface{}) 
 			defer w.Done()
 			if err := processor(ctx, msg); err != nil {
 				logger.Error(ctx, "dispatcher Dispatch error on event: %s, error: %#v", name, err)
-				sentry.Error(err)
+				sentry.Error(err,
+					"X-Request-ID", middleware.GetRequestId(ctx),
+					"Dispatch-Event", string(name),
+				)
 			}
 		})
 	}
@@ -69,7 +73,7 @@ func withRecover(ctx context.Context, fn func()) {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error(ctx, "dispatcher-panic error: %v", err)
-			sentry.Panic(err)
+			sentry.Panic(err, "request_id", middleware.GetRequestId(ctx))
 		}
 	}()
 

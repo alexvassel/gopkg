@@ -28,21 +28,35 @@ func Init(project, token string, flushTimeout time.Duration) error {
 	return nil
 }
 
-func Error(err error) {
+func ShouldBeProcessed(err error) bool {
+	return errors.IsInternal(err)
+}
+
+func Error(err error, tagKV ...string) {
 	if instance == nil || sentry.CurrentHub() == nil {
 		return
 	}
-	if errors.IsInternal(err) {
+	if ShouldBeProcessed(err) {
+		ConfigureScope(tagKV...)
 		sentry.CaptureException(err)
 		sentry.Flush(instance.flushTimeout)
 	}
 }
 
-func Panic(err interface{}) {
+func ConfigureScope(tagKV ...string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		for i := 0; i < len(tagKV); i += 2 {
+			scope.SetTag(tagKV[i], tagKV[i+1])
+		}
+	})
+}
+
+func Panic(err interface{}, tagKV ...string) {
 	if instance == nil {
 		return
 	}
 	if hub := sentry.CurrentHub(); hub != nil {
+		ConfigureScope(tagKV...)
 		hub.Recover(fmt.Sprintf("%#v", err))
 		sentry.Flush(instance.flushTimeout)
 	}
