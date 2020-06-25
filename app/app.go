@@ -300,6 +300,8 @@ doc-grpc: bin-deps ; $(info $(M) generate grpc docs…) @ ## Generate GRPC docum
 				swagger.WithTitle(a.config.Name),
 				swagger.WithVersion(a.config.Version),
 				pkgtransport.SetIntegerTypeForInt64(),
+				pkgtransport.SetDeprecatedFromSummary(),
+				pkgtransport.SetErrorResponse(),
 				pkgtransport.SetNameSnakeCase(),
 			}
 			o = append(o, a.customSwaggerOption...)
