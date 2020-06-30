@@ -16,12 +16,17 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.3
+	github.com/joho/godotenv v1.3.0
+	github.com/k3a/html2text v0.0.0-20191003111652-62431c4a3ba5
 	github.com/mitchellh/go-server-timing v1.0.0
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v0.9.2
 	github.com/robfig/cron v1.2.0 // indirect
+	github.com/sendgrid/rest v2.6.0+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.6.0+incompatible
 	github.com/severgroup-tt/gopkg-errors v0.1.2
 	github.com/severgroup-tt/gopkg-logger v0.1.1
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.4.0
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
