@@ -33,7 +33,7 @@ func TestSendEmail(t *testing.T) {
 	testClient(t, to, client)
 }
 
-func testClient(t *testing.T, to []string, email IClient) {
+func testClient(t *testing.T, to []string, email *Client) {
 	t.Run("Send plain", func(t *testing.T) {
 		err := email.Send(context.Background(), NewMessage("Письмо plain").
 			WithTo(to...).WithPlain("test"))

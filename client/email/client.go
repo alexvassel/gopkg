@@ -7,7 +7,7 @@ import (
 	"github.com/severgroup-tt/gopkg-app/client/email/provider"
 )
 
-type client struct {
+type Client struct {
 	metricSuccess *prometheus.Counter
 	metricFailed  *prometheus.Counter
 	sender        provider.ISender
@@ -19,8 +19,8 @@ func NewMessage(subject string) *provider.Message {
 	return &provider.Message{Subject: subject}
 }
 
-func NewClient(provider provider.IProvider, fromAddress, fromName string, option ...Option) (IClient, app.PublicCloserFn, error) {
-	c := client{}
+func NewClient(provider provider.IProvider, fromAddress, fromName string, option ...Option) (*Client, app.PublicCloserFn, error) {
+	c := Client{}
 	for _, o := range option {
 		o(&c)
 	}
@@ -32,7 +32,7 @@ func NewClient(provider provider.IProvider, fromAddress, fromName string, option
 	return &c, closer, nil
 }
 
-func (c *client) Send(ctx context.Context, msg *provider.Message) error {
+func (c *Client) Send(ctx context.Context, msg *provider.Message) error {
 	if err := msg.Prepare(ctx); err != nil {
 		return err
 	}

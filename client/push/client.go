@@ -16,10 +16,10 @@ import (
 
 var errTokenExpired = errors.New("NotRegistered")
 
-type client struct {
-	URL           string
-	APIKey        string
-	SenderID      string
+type Client struct {
+	url           string
+	apiKey        string
+	senderID      string
 	metricSuccess *prometheus.Counter
 	metricFailed  *prometheus.Counter
 	showInfo      bool
@@ -47,15 +47,11 @@ type pushResult struct {
 	Error string `json:"error"`
 }
 
-type IClient interface {
-	Send(context.Context, Message) (err error)
-}
-
-func NewClient(url, apiKey, senderID string, option ...Option) IClient {
-	c := &client{
-		URL:      url,
-		APIKey:   apiKey,
-		SenderID: senderID,
+func NewClient(url, apiKey, senderID string, option ...Option) *Client {
+	c := &Client{
+		url:      url,
+		apiKey:   apiKey,
+		senderID: senderID,
 	}
 	for _, o := range option {
 		o(c)
@@ -74,15 +70,15 @@ func (p Message) getHash() string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (c client) Send(ctx context.Context, msg Message) error {
-	req, err := http.NewRequest("POST", c.URL, bytes.NewBuffer(msg.getMessage()))
+func (c Client) Send(ctx context.Context, msg Message) error {
+	req, err := http.NewRequest("POST", c.url, bytes.NewBuffer(msg.getMessage()))
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "key="+c.APIKey)
-	req.Header.Set("Sender", "id="+c.SenderID)
+	req.Header.Set("Authorization", "key="+c.apiKey)
+	req.Header.Set("Sender", "id="+c.senderID)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -117,7 +113,7 @@ func IsTokenExpired(err error) bool {
 	return err == errTokenExpired
 }
 
-func (c client) isSuccess(ctx context.Context, data []byte) error {
+func (c Client) isSuccess(ctx context.Context, data []byte) error {
 	var resp pushResponse
 	err := jsn.Unmarshal(data, &resp)
 	if err != nil {

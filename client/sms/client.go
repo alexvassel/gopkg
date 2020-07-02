@@ -8,7 +8,7 @@ import (
 	"github.com/severgroup-tt/gopkg-app/app"
 )
 
-type client struct {
+type Client struct {
 	metricSuccess *prometheus.Counter
 	metricFailed  *prometheus.Counter
 	sender        provider.ISender
@@ -16,8 +16,8 @@ type client struct {
 	showError     bool
 }
 
-func NewClient(provider provider.IProvider, option ...Option) (IClient, app.PublicCloserFn, error) {
-	c := &client{}
+func NewClient(provider provider.IProvider, option ...Option) (*Client, app.PublicCloserFn, error) {
+	c := &Client{}
 	for _, o := range option {
 		o(c)
 	}
@@ -29,7 +29,7 @@ func NewClient(provider provider.IProvider, option ...Option) (IClient, app.Publ
 	return c, closer, nil
 }
 
-func (c client) Send(ctx context.Context, phone int64, message string) error {
+func (c Client) Send(ctx context.Context, phone int64, message string) error {
 	err := c.sender.Send(ctx, phone, message)
 	if err == nil {
 		if c.metricSuccess != nil {
