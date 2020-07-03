@@ -11,8 +11,8 @@ import (
 var globalCloser = New()
 
 // Add adds `func() error` callback to the globalCloser
-func Add(f ...func() error) {
-	globalCloser.Add(f...)
+func Add(name string, f func() error) {
+	globalCloser.Add(name, f)
 }
 
 func Wait() {
@@ -27,12 +27,12 @@ type Closer struct {
 	sync.Mutex
 	once  sync.Once
 	done  chan struct{}
-	funcs []func() error
+	funcs map[string]func() error
 }
 
 // New returns new Closer, if []os.Signal is specified Closer will automatically call CloseAll when one of signals is received from OS
 func New(sig ...os.Signal) *Closer {
-	c := &Closer{done: make(chan struct{})}
+	c := &Closer{done: make(chan struct{}), funcs: make(map[string]func() error)}
 	if len(sig) > 0 {
 		go func() {
 			ch := make(chan os.Signal, 1)
@@ -45,10 +45,13 @@ func New(sig ...os.Signal) *Closer {
 	return c
 }
 
-func (c *Closer) Add(f ...func() error) {
+func (c *Closer) Add(name string, f func() error) {
+	defer c.Unlock()
 	c.Lock()
-	c.funcs = append(c.funcs, f...)
-	c.Unlock()
+	if _, ok := c.funcs[name]; ok {
+		panic("Closer " + name + " already used")
+	}
+	c.funcs[name] = f
 }
 
 func (c *Closer) Wait() {
@@ -66,19 +69,17 @@ func (c *Closer) CloseAll() {
 		c.funcs = nil
 		c.Unlock()
 
-		// call all Closer funcs async
-		errs := make(chan error, len(funcs))
-		for _, f := range funcs {
-			go func(f func() error) {
-				errs <- f()
-			}(f)
+		var wg sync.WaitGroup
+		wg.Add(len(funcs))
+		for name, fn := range funcs {
+			go func(name string, fn func() error) {
+				defer wg.Done()
+				if err := fn(); err != nil {
+					fmt.Printf("Error on close %s: %+v", name, err)
+				}
+			}(name, fn)
 		}
 
-		for i := 0; i < cap(errs); i++ {
-			err := <-errs
-			if err := err; err != nil {
-				fmt.Println(err)
-			}
-		}
+		wg.Wait()
 	})
 }

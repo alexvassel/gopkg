@@ -1,11 +1,13 @@
 package app
 
 import (
+	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"github.com/severgroup-tt/gopkg-app/metrics"
 	"github.com/severgroup-tt/gopkg-app/middleware"
 	"github.com/severgroup-tt/gopkg-app/tracing"
+	errors "github.com/severgroup-tt/gopkg-errors"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 	"net/http"
@@ -14,6 +16,18 @@ import (
 
 type PublicCloserFn func() error
 type OptionFn func(a *App) error
+
+type PublicCloserFnMap map[string]PublicCloserFn
+
+func (m PublicCloserFnMap) Add(name string, fn PublicCloserFn) {
+	if fn == nil {
+		return
+	}
+	if _, ok := m[name]; ok {
+		panic("Closer " + name + " already used")
+	}
+	m[name] = fn
+}
 
 type PublicHandler struct {
 	Method      string
@@ -28,9 +42,14 @@ func WithPublicHandler(method, pattern string, handlerFunc http.HandlerFunc) Opt
 	}
 }
 
-func WithPublicCloser(fn ...PublicCloserFn) OptionFn {
+func WithPublicCloser(data PublicCloserFnMap) OptionFn {
 	return func(a *App) error {
-		a.customPublicCloser = append(a.customPublicCloser, fn...)
+		for name, fn := range data {
+			if _, ok := a.customPublicCloser[name]; ok {
+				return errors.Internal.Err(context.Background(), "Closer already used").WithPayloadKV("name", name)
+			}
+			a.customPublicCloser[name] = fn
+		}
 		return nil
 	}
 }
@@ -83,7 +102,7 @@ func WithTracer(addr string) OptionFn {
 		if err != nil {
 			return err
 		}
-		a.publicCloser.Add(func() error {
+		a.publicCloser.Add("tracing", func() error {
 			return tracerCloser.Close()
 		})
 		a.unaryInterceptor = append(a.unaryInterceptor,
