@@ -33,11 +33,25 @@ type PublicHandler struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
+	Middleware  []func(next http.Handler) http.Handler
 }
 
-func WithPublicHandler(method, pattern string, handlerFunc http.HandlerFunc) OptionFn {
+func (h PublicHandler) NewHandlerFuncWithMiddleware() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var handler http.Handler
+		handler = h.HandlerFunc
+		for _, mw := range h.Middleware {
+			handler = mw(handler)
+		}
+		handler.ServeHTTP(w, r)
+	}
+}
+
+// Есть проблема, что часть перехватчиков работают на уровне grpc и их надо дублировать при необходимости в ручку
+// TODO нужно сделать обертку, над генерируемым кодом, и вызывать принудительно grpc перехватчики
+func WithPublicHandler(method, pattern string, handlerFunc http.HandlerFunc, middleware ...func(next http.Handler) http.Handler) OptionFn {
 	return func(a *App) error {
-		a.customPublicHandler = append(a.customPublicHandler, PublicHandler{Method: method, Pattern: pattern, HandlerFunc: handlerFunc})
+		a.customPublicHandler = append(a.customPublicHandler, PublicHandler{Method: method, Pattern: pattern, HandlerFunc: handlerFunc, Middleware: middleware})
 		return nil
 	}
 }

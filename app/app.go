@@ -137,7 +137,7 @@ func (a *App) runServers(impl *transport.CompoundServiceDesc) {
 			a.httpServer.Mount("/debug", chiwm.Profiler())
 		}
 		for _, h := range a.customPublicHandler {
-			a.httpServer.Method(h.Method, h.Pattern, h.HandlerFunc)
+			a.httpServer.MethodFunc(h.Method, h.Pattern, h.NewHandlerFuncWithMiddleware())
 		}
 		a.runPublicHTTP()
 	}
