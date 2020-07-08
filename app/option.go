@@ -40,8 +40,8 @@ func (h PublicHandler) NewHandlerFuncWithMiddleware() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var handler http.Handler
 		handler = h.HandlerFunc
-		for _, mw := range h.Middleware {
-			handler = mw(handler)
+		for i := len(h.Middleware) - 1; i >= 0; i-- {
+			handler = h.Middleware[i](handler)
 		}
 		handler.ServeHTTP(w, r)
 	}
