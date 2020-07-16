@@ -74,20 +74,20 @@ func (c sendGridProvider) Send(ctx context.Context, msg *Message) error {
 	response, err := c.api.Send(m)
 	if err != nil {
 		if c.showError {
-			logger.Error(ctx, "Email error: %v, toList: %#v", err, toList)
+			logger.Error(ctx, "Email error: %v, to: %v, subject: %v", err, msg.to, msg.Subject)
 		}
 		return errors.Internal.Err(ctx, "Ошибка при отправке письма").
 			WithLogKV("err", err.Error())
 	}
 	if response.StatusCode >= 400 {
 		if c.showError {
-			logger.Error(ctx, "Email error %v: %v, toList: %#v", response.StatusCode, response.Body, toList)
+			logger.Error(ctx, "Email error %v: %v, to: %v, subject: %v", response.StatusCode, response.Body, msg.to, msg.Subject)
 		}
 		return errors.Internal.Err(ctx, "Ошибка при отправке письма").
 			WithLogKV("status", response.StatusCode, "body", response.Body)
 	}
 	if c.showInfo {
-		logger.Info(ctx, "Email send %v: %v, toList: %#v, subject: %v", response.StatusCode, response.Body, toList, m.Subject)
+		logger.Info(ctx, "Email send %v, to: %v, subject: %v", response.StatusCode, msg.to, msg.Subject)
 	}
 	return nil
 }
