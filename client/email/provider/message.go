@@ -1,12 +1,14 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
-	"fmt"
 	"github.com/k3a/html2text"
 	"github.com/severgroup-tt/gopkg-app/types"
 	errors "github.com/severgroup-tt/gopkg-errors"
+	uuid "gopkg.in/satori/go.uuid.v1"
+	"html/template"
 	"strings"
 	"time"
 )
@@ -79,41 +81,77 @@ func (m *Message) WithCalendarCard(card *CalendarCard) *Message {
 
 // calendar card
 
+var vCardMutliLineReplacer = strings.NewReplacer("\n", "\\n")
+
 type CalendarCard struct {
-	Name        string
-	Location    string
-	Description string
-	IsAllDay    bool
-	Start       time.Time
-	Finish      time.Time
+	UID               string
+	Name              string
+	Location          string
+	AttendeeEmailList []string
+	Description       string
+	IsAllDay          bool
+	Start             time.Time
+	Finish            time.Time
 }
 
-func (i CalendarCard) GetContent() string {
+func (i CalendarCard) GetContent() (string, error) {
 	var start, end string
 	if i.IsAllDay {
 		start = i.Start.Format("20060102")
 		end = i.Finish.Format("20060102")
 	} else {
 		start = types.DateTimeToYMDTHms(i.Start)
-		end = types.DateTimeToYMDTHms(i.Finish)
+		if !i.Finish.IsZero() {
+			end = types.DateTimeToYMDTHms(i.Finish)
+		}
 	}
-	return base64.StdEncoding.EncodeToString([]byte(
-		fmt.Sprintf(`BEGIN:VCALENDAR
+	var eventUUID string
+	if i.UID != "" {
+		eventUUID = uuid.NewV3(uuid.Nil, i.UID).String()
+	}
+	var organizer string
+	var attendeeList []string
+	if len(i.AttendeeEmailList) != 0 {
+		organizer = i.AttendeeEmailList[0]
+	}
+	if len(i.AttendeeEmailList) > 1 {
+		attendeeList = i.AttendeeEmailList[1:]
+	}
+	bodyTemplate := `BEGIN:VCALENDAR
 VERSION:2.0
 CALSCALE:GREGORIAN
-BEGIN:VEVENT
-SUMMARY:%s
-DTSTART;TZID=Europe/Moscow:%s
-DTEND;TZID=Europe/Moscow:%s
-LOCATION:%s
-DESCRIPTION:%s
+BEGIN:VEVENT{{if .UUID}}
+UID:{{.UUID}}{{end}}
+SUMMARY:{{.Name}}{{if .Organizer}}
+ORGANIZER:mailto:{{.Organizer}}{{end}}{{range $Attendee := .AttendeeList}}
+ATTENDEE;RSVP=TRUE:mailto:{{$Attendee}}{{end}}
+DTSTART;TZID=Europe/Moscow:{{.Start}}{{if .End}}
+DTEND;TZID=Europe/Moscow:{{.End}}{{end}}
+LOCATION:{{.Location}}{{if .Description}}
+DESCRIPTION:{{.Description}}{{end}}
 STATUS:CONFIRMED
 SEQUENCE:3
 BEGIN:VALARM
 TRIGGER:-PT10M
-DESCRIPTION:%s
 ACTION:DISPLAY
 END:VALARM
 END:VEVENT
-END:VCALENDAR`, i.Name, start, end, i.Location, i.Description, i.Name)))
+END:VCALENDAR`
+	bodyData := map[string]interface{}{
+		"UUID":         eventUUID,
+		"Name":         i.Name,
+		"Organizer":    organizer,
+		"AttendeeList": attendeeList,
+		"Description":  vCardMutliLineReplacer.Replace(i.Description),
+		"Location":     i.Location,
+		"Start":        start,
+		"End":          end,
+	}
+	t := template.Must(template.New("card").Parse(bodyTemplate))
+	buf := &bytes.Buffer{}
+	if err := t.Execute(buf, bodyData); err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }

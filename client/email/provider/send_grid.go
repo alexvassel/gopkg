@@ -56,9 +56,13 @@ func (c sendGridProvider) Send(ctx context.Context, msg *Message) error {
 	m.AddPersonalizations(p)
 
 	if msg.calendarCard != nil {
+		content, err := msg.calendarCard.GetContent()
+		if err != nil {
+			return errors.Internal.ErrWrap(ctx, "Can't create calendar card content by template", err)
+		}
 		m.Attachments = make([]*mail.Attachment, 0, 1)
 		m.Attachments = append(m.Attachments, &mail.Attachment{
-			Content:     msg.calendarCard.GetContent(),
+			Content:     content,
 			Type:        "application/ics",
 			Name:        "invite.ics",
 			Filename:    "invite.ics",
