@@ -36,9 +36,9 @@ func (c sendGridProvider) Send(ctx context.Context, msg *Message) error {
 
 	m.Subject = msg.Subject
 	p := mail.NewPersonalization()
-	toList := make([]*mail.Email, 0, len(msg.to))
-	used := make(map[string]struct{}, len(msg.to))
-	for _, contact := range msg.to {
+	toList := make([]*mail.Email, 0, len(msg.To))
+	used := make(map[string]struct{}, len(msg.To))
+	for _, contact := range msg.To {
 		if contact.Address == "" {
 			continue
 		}
@@ -78,20 +78,20 @@ func (c sendGridProvider) Send(ctx context.Context, msg *Message) error {
 	response, err := c.api.Send(m)
 	if err != nil {
 		if c.showError {
-			logger.Error(ctx, "Email error: %v, to: %v, subject: %v", err, msg.to, msg.Subject)
+			logger.Error(ctx, "Email error: %v, to: %v, subject: %v", err, msg.To, msg.Subject)
 		}
 		return errors.Internal.Err(ctx, "Ошибка при отправке письма").
 			WithLogKV("err", err.Error())
 	}
 	if response.StatusCode >= 400 {
 		if c.showError {
-			logger.Error(ctx, "Email error %v: %v, to: %v, subject: %v", response.StatusCode, response.Body, msg.to, msg.Subject)
+			logger.Error(ctx, "Email error %v: %v, to: %v, subject: %v", response.StatusCode, response.Body, msg.To, msg.Subject)
 		}
 		return errors.Internal.Err(ctx, "Ошибка при отправке письма").
 			WithLogKV("status", response.StatusCode, "body", response.Body)
 	}
 	if c.showInfo {
-		logger.Info(ctx, "Email send %v, to: %v, subject: %v", response.StatusCode, msg.to, msg.Subject)
+		logger.Info(ctx, "Email send %v, to: %v, subject: %v", response.StatusCode, msg.To, msg.Subject)
 	}
 	return nil
 }

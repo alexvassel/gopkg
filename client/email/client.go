@@ -15,8 +15,8 @@ type Client struct {
 	showError     bool
 }
 
-func NewMessage(subject string) *provider.Message {
-	return &provider.Message{Subject: subject}
+func NewMessage() *provider.Message {
+	return &provider.Message{}
 }
 
 func NewClient(provider provider.IProvider, fromAddress, fromName string, option ...Option) (*Client, app.PublicCloserFn, error) {
@@ -32,7 +32,12 @@ func NewClient(provider provider.IProvider, fromAddress, fromName string, option
 	return &c, closer, nil
 }
 
-func (c *Client) Send(ctx context.Context, msg *provider.Message) error {
+func (c *Client) Send(ctx context.Context, subject string, addressNameMap map[string]string, msg *provider.Message) error {
+	msg.Subject = subject
+	msg.To = make(provider.ContactList, 0, len(addressNameMap))
+	for address, name := range addressNameMap {
+		msg.To = append(msg.To, &provider.Contact{Address: address, Name: name})
+	}
 	if err := msg.Prepare(ctx); err != nil {
 		return err
 	}

@@ -82,7 +82,7 @@ func (c mqProvider) Connect(fromAddress, fromName string, showInfo, showError bo
 func (c mqProvider) Send(ctx context.Context, msg *Message) error {
 	body, err := json.Marshal(mqData{
 		From:    c.from,
-		To:      msg.to.String(),
+		To:      msg.To.String(),
 		Subject: msg.Subject,
 		Content: msg.bodyHTML,
 	})

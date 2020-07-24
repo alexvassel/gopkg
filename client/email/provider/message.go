@@ -20,7 +20,7 @@ var html2plain = strings.NewReplacer("\n", "", "\r", "", "<br>", "<br/>", "</br>
 
 type Message struct {
 	Subject      string
-	to           ContactList
+	To           ContactList
 	bodyPlain    string
 	bodyHTML     string
 	calendarCard *CalendarCard
@@ -42,26 +42,6 @@ func (m *Message) Prepare(ctx context.Context) error {
 		m.bodyHTML = nl2br.Replace(m.bodyPlain)
 	}
 	return nil
-}
-
-func (m *Message) WithTo(addressNamePair ...string) *Message {
-	if m.to == nil {
-		m.to = make(ContactList, 0, len(addressNamePair)/2)
-	}
-	for i := 0; i < len(addressNamePair); i += 2 {
-		m.to = append(m.to, &Contact{Address: addressNamePair[i], Name: addressNamePair[i+1]})
-	}
-	return m
-}
-
-func (m *Message) WithToAddress(address ...string) *Message {
-	if m.to == nil {
-		m.to = make(ContactList, 0, len(address))
-	}
-	for _, a := range address {
-		m.to = append(m.to, &Contact{Address: a})
-	}
-	return m
 }
 
 func (m *Message) WithPlain(body string) *Message {
