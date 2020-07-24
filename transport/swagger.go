@@ -93,5 +93,14 @@ func SetNameSnakeCase() swagger.Option {
 				}
 			}
 		}
+		for _, path := range swagger.Paths.Paths {
+			for _, op := range []*spec.Operation{path.Get, path.Post, path.Put, path.Patch, path.Delete} {
+				if op != nil {
+					for i, param := range op.Parameters {
+						op.Parameters[i].ParamProps.Name = types.CamelToSnakeCase(param.ParamProps.Name)
+					}
+				}
+			}
+		}
 	}
 }
