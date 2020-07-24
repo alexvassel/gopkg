@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/severgroup-tt/gopkg-app/client/sentry"
 	"github.com/severgroup-tt/gopkg-app/middleware"
+	database "github.com/severgroup-tt/gopkg-database"
+	"github.com/severgroup-tt/gopkg-database/repository/dao"
 	logger "github.com/severgroup-tt/gopkg-logger"
 	"sync"
 )
@@ -33,32 +35,39 @@ func (d *Dispatcher) AddProcessor(name Event, processor EventProcessor) {
 	d.processors[name] = append(d.processors[name], processor)
 }
 
-// Dispatch process event with all available processors in parallel and wait
-func (d *Dispatcher) Dispatch(ctx context.Context, name Event, msg interface{}) {
+// Dispatch process event
+func (d *Dispatcher) Dispatch(ctx context.Context, name Event, msg interface{}) error {
 	d.rwMutex.RLock()
 	defer d.rwMutex.RUnlock()
 	processorsCnt := len(d.processors[name])
 	if processorsCnt == 0 {
-		return
+		return nil
 	}
 
-	w := sync.WaitGroup{}
-	w.Add(processorsCnt)
-	for i := range d.processors[name] {
-		processor := d.processors[name][i]
-
-		go withRecover(ctx, func() {
-			defer w.Done()
-			if err := processor(ctx, msg); err != nil {
-				logger.Error(ctx, "dispatcher Dispatch error on event: %s, error: %#v", name, err)
-				sentry.Error(err,
-					"X-Request-ID", middleware.GetRequestId(ctx),
-					"Dispatch-Event", string(name),
-				)
+	h := func(ctx context.Context) error {
+		errs := make(chan error, len(d.processors[name]))
+		for i := range d.processors[name] {
+			go func(processor EventProcessor, errs chan<- error) {
+				errs <- processor(ctx, msg)
+			}(d.processors[name][i], errs)
+		}
+		for i := 0; i < len(d.processors[name]); i++ {
+			if err := <-errs; err != nil {
+				return err
 			}
+		}
+		return nil
+	}
+
+	db := database.TryFromContext(ctx)
+	if db != nil {
+		repo := dao.New()
+		return repo.WithTX(ctx, func(ctx context.Context) error {
+			return h(ctx)
 		})
 	}
-	w.Wait()
+
+	return h(ctx)
 }
 
 // Stop wait until all async processors done

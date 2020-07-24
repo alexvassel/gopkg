@@ -24,13 +24,15 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sendgrid/rest v2.6.0+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.6.0+incompatible
+	github.com/severgroup-tt/gopkg-database v1.0.1
 	github.com/severgroup-tt/gopkg-errors v0.1.2
 	github.com/severgroup-tt/gopkg-logger v0.1.1
 	github.com/streadway/amqp v1.0.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/utrack/clay/v2 v2.3.9
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.22.0
 	gopkg.in/satori/go.uuid.v1 v1.2.0
 )
