@@ -1,4 +1,4 @@
-module github.com/severgroup-tt/gopkg-app
+module github.com/alexvassel/gopkg
 
 go 1.14
 
